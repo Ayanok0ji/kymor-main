@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kymor - Sign In & Register</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="text-white min-h-screen flex flex-col items-center justify-center px-4 selection:bg-[#14b8a6] selection:text-black pb-10">
+    
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="glass-overlay"></div>
+
+    <main class="w-full max-w-[400px] mt-10 z-10 relative">
+        
+        <div class="flex flex-col items-center mb-8">
+            <div class="bg-gradient-to-br from-[#1a1a1c] to-[#0a0a0b] border border-white/10 w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden mb-3">
+                <img src="/assets/logo.svg" alt="Kymor Logo" class="w-full h-full object-contain p-2">
+            </div>
+            <h2 class="text-white font-black text-xl tracking-widest uppercase">Kymor</h2>
+        </div>
+
+        <div id="auth-tabs" class="bg-[#0a0a0b] border border-[#1f1f22] rounded-xl p-1 flex mb-8 transition-opacity duration-300">
+            <button id="tab-signin" onclick="window.switchMode('signin')" class="w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 bg-[#1a1a1c] text-white">Sign In</button>
+            <button id="tab-signup" onclick="window.switchMode('signup')" class="w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 text-gray-400 hover:text-white bg-transparent">Create Account</button>
+        </div>
+
+        <div class="relative">
+            <div id="form-signin" class="block transition-opacity duration-300">
+                <h1 class="text-3xl font-bold mb-2">Welcome back</h1>
+                <p class="text-gray-400 text-sm mb-8">Sign in to your Kymor account</p>
+                <form onsubmit="event.preventDefault(); window.handleSignIn();">
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">Username or Email</label>
+                        <input type="text" id="signin-identifier" autocomplete="username" class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                    </div>
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium">Password</label>
+                            <button type="button" onclick="window.switchMode('forgot')" class="text-[#14b8a6] text-sm hover:underline font-medium">Forgot Password?</button>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="signin-password" autocomplete="current-password" class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                            <button type="button" onclick="window.togglePassword('signin-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <button id="btn-signin" type="submit" class="w-full bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold py-3.5 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.2)]">Sign In</button>
+                </form>
+            </div>
+
+            <div id="form-signup" class="hidden transition-opacity duration-300">
+                <h1 class="text-3xl font-bold mb-2">Get started</h1>
+                <p class="text-gray-400 text-sm mb-8">Create your Kymor account</p>
+                <form onsubmit="event.preventDefault(); window.handleSignUp();" autocomplete="off">
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">Email Address</label>
+                        <input type="email" id="signup-email" autocomplete="email" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                    </div>
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="signup-username" autocomplete="off" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                    </div>
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">Password</label>
+                        <div class="relative">
+                            <input type="password" id="signup-password" autocomplete="new-password" onfocus="document.getElementById('password-helper').classList.remove('opacity-0', 'h-0', 'mt-0'); document.getElementById('password-helper').classList.add('opacity-100', 'h-auto', 'mt-2')" onblur="document.getElementById('password-helper').classList.add('opacity-0', 'h-0', 'mt-0'); document.getElementById('password-helper').classList.remove('opacity-100', 'h-auto', 'mt-2')" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                            <button type="button" onclick="window.togglePassword('signup-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                        </div>
+                        <p id="password-helper" class="text-xs text-gray-500 opacity-0 h-0 mt-0 overflow-hidden transition-all duration-300">Must contain uppercase, lowercase, number, symbol, and be 8+ characters.</p>
+                    </div>
+                    <div class="mb-6 flex items-center">
+                        <input type="checkbox" id="tos" disabled class="w-5 h-5 rounded bg-[#121214] border-[#1f1f22] accent-[#14b8a6] disabled:opacity-30 disabled:cursor-not-allowed">
+                        <label for="tos" class="ml-3 text-sm text-gray-400">I agree to the <button type="button" onclick="window.openTos()" class="text-[#14b8a6] hover:underline font-medium">Terms and Conditions</button></label>
+                    </div>
+                    <button id="btn-signup" type="submit" class="w-full bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold py-3.5 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.2)]">Create Account</button>
+                </form>
+            </div>
+
+            <div id="form-otp" class="hidden transition-opacity duration-300">
+                <div class="w-12 h-12 rounded-xl bg-[#14b8a6]/10 border border-[#14b8a6]/20 flex items-center justify-center mb-6 text-[#14b8a6]"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+                <h1 class="text-3xl font-bold mb-2">Verify it's you</h1>
+                <p class="text-gray-400 text-sm mb-8">We've sent a 6-digit code to your email. Enter it below.</p>
+                <form onsubmit="event.preventDefault(); window.handleVerifyOTP();">
+                    <div class="flex gap-2 sm:gap-3 mb-8 w-full justify-center" id="login-otp-container">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                    </div>
+                    <button id="btn-otp" type="submit" class="w-full bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold py-3.5 rounded-xl transition-colors mb-4 flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.2)]">Verify</button>
+                    
+                    <div class="flex justify-between items-center px-1">
+                        <button type="button" onclick="window.switchMode('signin')" class="py-2 text-sm text-gray-400 hover:text-white transition-colors font-medium">Cancel</button>
+                        <button type="button" id="btn-resend-otp" onclick="window.handleResendOTP()" disabled class="py-2 text-sm text-[#14b8a6] hover:text-white transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-[#14b8a6]">Resend Code (60s)</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="form-forgot" class="hidden transition-opacity duration-300">
+                <div class="w-12 h-12 rounded-xl bg-[#3b82f6]/10 border border-[#3b82f6]/20 flex items-center justify-center mb-6 text-[#3b82f6]"><i data-lucide="mail" class="w-6 h-6"></i></div>
+                <h1 class="text-3xl font-bold mb-2">Reset Password</h1>
+                <p class="text-gray-400 text-sm mb-8">Enter your registered email address to receive a reset code.</p>
+                <form onsubmit="event.preventDefault(); window.handleForgotPassword();">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Email Address</label>
+                        <input type="email" id="forgot-email" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors placeholder:text-gray-600">
+                    </div>
+                    <button id="btn-forgot" type="submit" class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded-xl transition-colors mb-4 flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.2)]">Send Code</button>
+                    <button type="button" onclick="window.switchMode('signin')" class="w-full py-3 text-sm text-gray-400 hover:text-white transition-colors font-medium">Back to Sign In</button>
+                </form>
+            </div>
+
+            <div id="form-reset" class="hidden transition-opacity duration-300">
+                <div class="w-12 h-12 rounded-xl bg-[#14b8a6]/10 border border-[#14b8a6]/20 flex items-center justify-center mb-6 text-[#14b8a6]"><i data-lucide="key-round" class="w-6 h-6"></i></div>
+                <h1 class="text-3xl font-bold mb-2">Create new password</h1>
+                <p class="text-gray-400 text-sm mb-6">Enter the 6-digit code sent to your email and your new password.</p>
+                <form onsubmit="event.preventDefault(); window.handleResetPassword();">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-3 text-center text-gray-400">6-Digit Reset Code</label>
+                        <div class="flex gap-2 sm:gap-3 w-full justify-center" id="reset-otp-container">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-12 h-14 bg-[#121214] border border-[#1f1f22] rounded-xl text-center text-2xl font-black text-white outline-none focus:border-[#14b8a6] transition">
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">New Password</label>
+                        <div class="relative">
+                            <input type="password" id="new-password" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                            <button type="button" onclick="window.togglePassword('new-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium mb-2">Confirm Password</label>
+                        <div class="relative">
+                            <input type="password" id="confirm-password" required class="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#14b8a6] transition-colors placeholder:text-gray-600">
+                            <button type="button" onclick="window.togglePassword('confirm-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <button id="btn-reset" type="submit" class="w-full bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold py-3.5 rounded-xl transition-colors mb-4 flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.2)]">Confirm Reset</button>
+                    <button type="button" onclick="window.switchMode('signin')" class="w-full py-3 text-sm text-gray-400 hover:text-white transition-colors font-medium">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="tos-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] opacity-0 pointer-events-none flex items-center justify-center transition-opacity duration-300">
+        <div id="tos-content" class="bg-[#0a0a0b] border border-[#1f1f22] rounded-xl w-[90%] max-w-lg p-6 max-h-[80vh] flex flex-col relative scale-95 transition-transform duration-300 shadow-2xl">
+            <button onclick="window.closeTos()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-[#14b8a6]"></i> Terms and Conditions</h2>
+            
+            <div id="tos-scroll-area" onscroll="window.checkTosScroll()" class="overflow-y-auto pr-3 text-sm text-gray-400 space-y-4 flex-1 custom-scrollbar">
+                <p>Welcome to Kymor. By creating an account and using our services, you agree to comply with and be bound by the following terms.</p>
+                <h3 class="text-white font-medium">1. Account Security</h3>
+                <p>You are entirely responsible for maintaining the confidentiality of the information you hold for your account, including your password. You agree to notify us immediately of any unauthorized use of your account.</p>
+                <h3 class="text-white font-medium">2. Acceptable Use</h3>
+                <p>You agree not to use the application in any way that is unlawful, illegal, fraudulent, or harmful, or in connection with any unlawful, illegal, fraudulent, or harmful purpose or activity.</p>
+                <h3 class="text-white font-medium">3. Data Privacy</h3>
+                <p>Your privacy is important to us. Our use of your personal information is governed by our Privacy Policy, which is incorporated into these Terms.</p>
+                <h3 class="text-white font-medium">4. Termination</h3>
+                <p>We may terminate or suspend your access immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+                <br><br><p class="text-center italic pb-4">Please scroll to the bottom to accept.</p>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-[#1f1f22] flex justify-end gap-3">
+                <button onclick="window.closeTos()" class="px-5 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button id="btn-accept-tos" disabled onclick="window.acceptTos()" class="bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold py-2 px-6 rounded-lg transition-colors shadow-[0_0_10px_rgba(20,184,166,0.2)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">I Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        lucide.createIcons();
+
+        let pendingUserId = null; 
+        let pendingOtpContext = null; 
+        let resetTargetEmail = null;
+        let resendTimerInterval = null;
+
+        const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+        function setupOtpInputs(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const inputs = container.querySelectorAll('input');
+            
+            inputs.forEach((input, index) => {
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                    if (!pastedData) return;
+                    for (let i = 0; i < pastedData.length; i++) {
+                        if (inputs[i]) inputs[i].value = pastedData[i];
+                    }
+                    const nextFocus = Math.min(pastedData.length, 5);
+                    inputs[nextFocus].focus();
+                });
+
+                input.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    if (e.target.value !== '' && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '') {
+                        if (index > 0) {
+                            inputs[index - 1].value = '';
+                            inputs[index - 1].focus();
+                        }
+                    }
+                });
+            });
+        }
+        
+        setupOtpInputs('login-otp-container');
+        setupOtpInputs('reset-otp-container');
+
+        function getOtpValue(containerId) {
+            const inputs = document.querySelectorAll(`#${containerId} input`);
+            let code = '';
+            inputs.forEach(input => code += input.value);
+            return code;
+        }
+
+        function clearOtpInputs(containerId) {
+            const inputs = document.querySelectorAll(`#${containerId} input`);
+            inputs.forEach(input => input.value = '');
+            if(inputs.length > 0) inputs[0].focus();
+        }
+
+        window.startResendCooldown = function(btnId) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            
+            let timeLeft = 60;
+            btn.disabled = true;
+            btn.innerText = `Resend Code (${timeLeft}s)`;
+            
+            clearInterval(resendTimerInterval);
+            resendTimerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(resendTimerInterval);
+                    btn.disabled = false;
+                    btn.innerText = "Resend Code";
+                } else {
+                    btn.innerText = `Resend Code (${timeLeft}s)`;
+                }
+            }, 1000);
+        }
+
+        window.checkTosScroll = function() {
+            const el = document.getElementById('tos-scroll-area');
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+                document.getElementById('btn-accept-tos').disabled = false;
+            }
+        }
+
+        window.openTos = function() {
+            document.getElementById('btn-accept-tos').disabled = true; 
+            document.getElementById('tos-scroll-area').scrollTop = 0; 
+            
+            const modal = document.getElementById('tos-modal');
+            const content = document.getElementById('tos-content');
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100', 'pointer-events-auto');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+                window.checkTosScroll(); 
+            }, 10);
+        }
+
+        window.closeTos = function() {
+            const modal = document.getElementById('tos-modal');
+            const content = document.getElementById('tos-content');
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }, 300);
+        }
+
+        window.acceptTos = function() {
+            document.getElementById('tos').disabled = false; 
+            document.getElementById('tos').checked = true; 
+            window.closeTos();
+        }
+
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            
+            container.className = 'fixed top-4 sm:top-auto sm:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:-translate-x-0 sm:right-6 z-[9999] flex flex-col sm:flex-col items-center sm:items-end gap-2 pointer-events-none w-[90%] sm:w-auto';
+
+            const toast = document.createElement('div');
+            const isError = type === 'error';
+            const isInfo = type === 'info';
+            const icon = isError ? 'alert-circle' : (isInfo ? 'loader-2' : 'check-circle');
+            const colorClass = isError ? 'text-red-500' : (isInfo ? 'text-[#5865F2]' : 'text-[#14b8a6]');
+            
+            toast.className = `flex items-center gap-3 bg-[#1e1f22] border border-[#2b2d31] p-3 sm:p-4 rounded-md shadow-2xl transform sm:translate-x-full -translate-y-full sm:translate-y-0 opacity-0 transition-all duration-300 pointer-events-auto w-full sm:w-[350px]`;
+            toast.innerHTML = `
+                <div class="${colorClass} shrink-0">
+                    <i data-lucide="${icon}" class="w-5 h-5 ${isInfo ? 'animate-spin' : ''}"></i>
+                </div>
+                <p class="text-sm font-bold text-gray-200 flex-1 break-words">${message}</p>
+                <button onclick="this.parentElement.classList.add('opacity-0', 'scale-95'); setTimeout(()=>this.parentElement.remove(),300)" class="text-gray-400 hover:text-white transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('sm:translate-x-full', '-translate-y-full', 'opacity-0');
+            });
+            
+            if(!isInfo) {
+                setTimeout(() => { 
+                    toast.classList.add('opacity-0', 'scale-95'); 
+                    setTimeout(() => toast.remove(), 300); 
+                }, 4000);
+            }
+            return toast;
+        }
+
+        window.setButtonLoading = function(btnId, isLoading, originalText) {
+            const btn = document.getElementById(btnId);
+            if(isLoading) { btn.disabled = true; btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing...`; } 
+            else { btn.disabled = false; btn.innerHTML = originalText; }
+            lucide.createIcons({ root: btn });
+        }
+
+        window.switchMode = function(mode) {
+            const views = ['signin', 'signup', 'otp', 'forgot', 'reset'];
+            views.forEach(v => document.getElementById(`form-${v}`).classList.add('hidden'));
+            document.getElementById(`form-${mode}`).classList.remove('hidden');
+            const tabs = document.getElementById('auth-tabs');
+            
+            if (mode === 'otp') {
+                tabs.classList.add('hidden');
+                clearOtpInputs('login-otp-container');
+            } else if (mode === 'reset') {
+                tabs.classList.add('hidden');
+                clearOtpInputs('reset-otp-container');
+            } else if (mode === 'forgot') { 
+                tabs.classList.add('hidden'); 
+            } else {
+                tabs.classList.remove('hidden');
+                document.getElementById('tab-signin').className = mode === 'signin' ? "w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 bg-[#1a1a1c] text-white" : "w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 text-gray-400 hover:text-white bg-transparent";
+                document.getElementById('tab-signup').className = mode === 'signup' ? "w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 bg-[#1a1a1c] text-white" : "w-1/2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 text-gray-400 hover:text-white bg-transparent";
+            }
+        }
+
+        window.togglePassword = function(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = input.nextElementSibling;
+            
+            if (input.type === 'password') { 
+                input.type = 'text'; 
+                btn.innerHTML = '<i data-lucide="eye-off" class="w-5 h-5"></i>';
+            } else { 
+                input.type = 'password'; 
+                btn.innerHTML = '<i data-lucide="eye" class="w-5 h-5"></i>';
+            }
+            
+            lucide.createIcons({ root: btn });
+        }
+
+        window.handleSignIn = async function() {
+            const identifier = document.getElementById('signin-identifier').value;
+            const password = document.getElementById('signin-password').value;
+            if (!identifier || !password) return window.showToast("Please fill in all fields.", "error");
+
+            window.setButtonLoading('btn-signin', true, 'Sign In');
+            try {
+                const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+                const data = await res.json();
+                
+                if (data.requires_otp) {
+                    pendingUserId = data.userId;
+                    pendingOtpContext = data.context;
+                    window.switchMode('otp');
+                    window.showToast(data.message, "success"); 
+                    window.startResendCooldown('btn-resend-otp'); 
+                } else if (data.success) {
+                    window.showToast("Sign in successful!", "success");
+                    localStorage.setItem('is_logged_in', 'true');
+                    setTimeout(() => window.location.href = '/dashboard', 1000); 
+                } else { window.showToast(data.error || "Sign in failed.", "error"); }
+            } catch (err) { window.showToast("Connection error.", "error"); }
+            finally { window.setButtonLoading('btn-signin', false, 'Sign In'); }
+        }
+
+        window.handleSignUp = async function() {
+            const email = document.getElementById('signup-email').value;
+            const username = document.getElementById('signup-username').value;
+            const password = document.getElementById('signup-password').value;
+            const tos = document.getElementById('tos').checked;
+
+            if (!email || !username || !password) return window.showToast("All fields are required.", "error");
+            if (!tos) return window.showToast("You must agree to the Terms and Conditions.", "error");
+            
+            if (!passwordStrengthRegex.test(password)) {
+                return window.showToast("Password must have uppercase, lowercase, a number, a symbol, and be at least 8 characters.", "error");
+            }
+
+            window.setButtonLoading('btn-signup', true, 'Create Account');
+            try {
+                const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password, acceptedTOS: tos }) });
+                const data = await res.json();
+                
+                if (data.requires_otp) {
+                    pendingUserId = data.userId;
+                    pendingOtpContext = data.context;
+                    window.switchMode('otp');
+                    window.showToast(data.message, "success"); 
+                    window.startResendCooldown('btn-resend-otp');
+                } else { window.showToast(data.error || "Registration failed.", "error"); }
+            } catch (err) { window.showToast("Connection error.", "error"); }
+            finally { window.setButtonLoading('btn-signup', false, 'Create Account'); }
+        }
+
+        window.handleResendOTP = async function() {
+            if (!pendingUserId || !pendingOtpContext) return;
+            
+            window.startResendCooldown('btn-resend-otp');
+            window.showToast("Requesting new code...", "info");
+            
+            try {
+                const res = await fetch('/api/auth/resend-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: pendingUserId, context: pendingOtpContext })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.showToast(data.message, "success");
+                    clearOtpInputs('login-otp-container');
+                } else {
+                    window.showToast(data.error || "Failed to resend code.", "error");
+                    clearInterval(resendTimerInterval);
+                    const btn = document.getElementById('btn-resend-otp');
+                    btn.disabled = false;
+                    btn.innerText = "Resend Code";
+                }
+            } catch (err) {
+                window.showToast("Connection error.", "error");
+            }
+        }
+
+        window.handleVerifyOTP = async function() {
+            const otp = getOtpValue('login-otp-container');
+            if (!otp || otp.length !== 6) return window.showToast("Enter the full 6-digit code.", "error");
+
+            window.setButtonLoading('btn-otp', true, 'Verify');
+            try {
+                const res = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: pendingUserId, otp, context: pendingOtpContext }) });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.showToast("Verification successful!", "success");
+                    localStorage.setItem('is_logged_in', 'true');
+                    setTimeout(() => window.location.href = '/dashboard', 1000); 
+                } else { 
+                    window.showToast(data.error || "Verification failed.", "error"); 
+                    clearOtpInputs('login-otp-container');
+                }
+            } catch (err) { window.showToast("Connection error.", "error"); }
+            finally { window.setButtonLoading('btn-otp', false, 'Verify'); }
+        }
+
+        window.handleForgotPassword = async function() {
+            const email = document.getElementById('forgot-email').value;
+            if (!email) return window.showToast("Enter your email address.", "error");
+
+            window.setButtonLoading('btn-forgot', true, 'Send Code');
+            try {
+                const res = await fetch('/api/auth/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+                const data = await res.json();
+                
+                if (data.success) {
+                    resetTargetEmail = data.email; 
+                    window.showToast(data.message, "success"); 
+                    window.switchMode('reset');
+                } else { window.showToast(data.error || "Failed to send.", "error"); }
+            } catch (err) { window.showToast("Connection error.", "error"); }
+            finally { window.setButtonLoading('btn-forgot', false, 'Send Code'); }
+        }
+
+        window.handleResetPassword = async function() {
+            const otp = getOtpValue('reset-otp-container');
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (otp.length !== 6) return window.showToast("Enter the 6-digit code.", "error");
+            if (newPassword !== confirmPassword) return window.showToast("Passwords do not match.", "error");
+
+            if (!passwordStrengthRegex.test(newPassword)) {
+                return window.showToast("Password must have uppercase, lowercase, a number, a symbol, and be at least 8 characters.", "error");
+            }
+
+            window.setButtonLoading('btn-reset', true, 'Confirm Reset');
+            try {
+                const res = await fetch('/api/auth/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: resetTargetEmail, otp, newPassword }) });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.showToast("Password updated successfully!", "success");
+                    setTimeout(() => window.switchMode('signin'), 1500); 
+                } else { 
+                    window.showToast(data.error || "Failed to reset password.", "error"); 
+                    clearOtpInputs('reset-otp-container');
+                }
+            } catch (err) { window.showToast("Connection error.", "error"); }
+            finally { window.setButtonLoading('btn-reset', false, 'Confirm Reset'); }
+        }
+    </script>
+</body>
+</html>

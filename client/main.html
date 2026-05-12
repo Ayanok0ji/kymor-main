@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kymor | Advanced Lua Script Protection & Monetization</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body style="overflow-x: hidden; width: 100vw;">
+
+    <div class="bg-grid"></div>
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+
+    <nav class="lp-navbar lp-glass-panel reveal active">
+        <a href="/" class="lp-nav-brand">
+            <div class="lp-nav-brand-icon">
+                <i data-lucide="shield" style="width: 14px; height: 14px; color: #14b8a6;"></i>
+            </div>
+            Kymor
+        </a>
+        <div class="lp-nav-links">
+            <a href="#features" class="lp-nav-link">Features</a>
+            <a href="#analytics" class="lp-nav-link">Analytics</a>
+            <a href="/docs" class="lp-nav-link">Documentation</a>
+        </div>
+        <div class="lp-nav-actions">
+            <a href="/login" class="lp-btn-login">Sign In</a>
+            <a href="/dashboard" class="lp-btn-nav-cta">Dashboard</a>
+        </div>
+    </nav>
+
+    <section class="lp-hero lp-container">
+        <div class="lp-hero-grid">
+            <div class="lp-hero-content reveal active delay-1">
+                <div class="lp-hero-badge">
+                    <div class="lp-pulse-dot"></div> Platform V2 Active
+                </div>
+                <h1 class="lp-hero-title">Unbreakable <br><span class="lp-text-gradient">Lua Protection.</span></h1>
+                <p class="lp-hero-desc">The industry standard for distributing Roblox scripts. Secure your hard work with granular time-based keys, automated ad-link checkpoints, and a global Discord API.</p>
+                <div class="lp-hero-buttons">
+                    <a href="/login" class="lp-btn-primary">
+                        Get Started <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+                    </a>
+                    <a href="#features" class="lp-btn-secondary">
+                        <i data-lucide="terminal" style="width: 18px; height: 18px;"></i> View SDK
+                    </a>
+                </div>
+            </div>
+
+            <div class="lp-hero-visual reveal active delay-2">
+                <div class="lp-mock-window">
+                    <div class="lp-mock-header">
+                        <div class="lp-mock-dot" style="background: #ef4444;"></div>
+                        <div class="lp-mock-dot" style="background: #f59e0b;"></div>
+                        <div class="lp-mock-dot" style="background: #22c55e;"></div>
+                    </div>
+                    <div class="lp-mock-body">
+                        <div class="lp-mock-stats">
+                            <div class="lp-mock-stat-card">
+                                <h4 class="lp-mock-stat-title">Active Sessions</h4>
+                                <div id="live-active-sessions" class="lp-mock-stat-value accent">0</div>
+                            </div>
+                            <div class="lp-mock-stat-card">
+                                <h4 class="lp-mock-stat-title">Keys Generated</h4>
+                                <div id="live-keys-generated" class="lp-mock-stat-value">0</div>
+                            </div>
+                        </div>
+                        <div class="lp-chart-container">
+                            <div id="heroChart" style="min-height: 180px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="lp-section-padding lp-container">
+        <div class="lp-section-header reveal">
+            <h2 class="lp-section-title">Everything you need, <br>out of the box.</h2>
+            <p class="lp-section-desc">Stop writing custom backends. Focus on developing your script while we handle security, authentication, and monetization.</p>
+        </div>
+
+        <div class="lp-features-grid">
+            <div class="lp-feature-card reveal delay-1">
+                <div class="lp-feature-icon"><i data-lucide="lock" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Granular HWID Locking</h3>
+                <p class="lp-feature-card-desc">Keys automatically bind to the user's physical hardware to prevent leaking. Generate everything from 24-hour keys to lifetime access.</p>
+            </div>
+            
+            <div class="lp-feature-card reveal delay-2">
+                <div class="lp-feature-icon"><i data-lucide="link-2" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Ad-Link Checkpoints</h3>
+                <p class="lp-feature-card-desc">Natively integrated with Linkvertise, Lootlabs, Work.Ink, and ShrtFly. Includes automated bypass detection and risk scoring to maximize passive revenue.</p>
+            </div>
+
+            <div class="lp-feature-card reveal delay-3">
+                <div class="lp-feature-icon"><i data-lucide="message-square" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Global Discord Bot</h3>
+                <p class="lp-feature-card-desc">Add the Kymor bot to your server. Users can type <code>/getkey</code> to securely authenticate and link their Discord account to your Hub.</p>
+            </div>
+
+            <div class="lp-feature-card reveal delay-1">
+                <div class="lp-feature-icon"><i data-lucide="shield-alert" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Dynamic Obfuscation</h3>
+                <p class="lp-feature-card-desc">Protect your raw Lua source code. We pass your script through our integrated LuaCon engine automatically before it reaches the user.</p>
+            </div>
+
+            <div class="lp-feature-card reveal delay-2">
+                <div class="lp-feature-icon"><i data-lucide="layout" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Landing Page & Payments</h3>
+                <p class="lp-feature-card-desc">Design a hosted landing page for your script. Claim a custom URL slug and accept live payments via PayMongo, GCash, Maya, and PayPal.</p>
+            </div>
+
+            <div class="lp-feature-card reveal delay-3">
+                <div class="lp-feature-icon"><i data-lucide="activity" style="width: 24px; height: 24px;"></i></div>
+                <h3 class="lp-feature-card-title">Live Analytics</h3>
+                <p class="lp-feature-card-desc">Monitor executions in real-time. View breakdowns of which executors your users are running and track global geographic distribution.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="analytics" class="lp-section-padding lp-container">
+        <div class="lp-metrics-grid">
+            <div class="lp-metrics-content reveal">
+                <h2 class="lp-section-title">Built for conversion & security.</h2>
+                <p class="lp-section-desc" style="margin-bottom: 40px;">Watch your user base grow. Our checkpoint system is optimized to prevent bypasses while maximizing ad revenue.</p>
+                
+                <div class="lp-metric-block">
+                    <div class="lp-metric-header">
+                        <span>Average Checkpoint Completion</span>
+                        <span id="stat-completion-text" style="color: #14b8a6;">0%</span>
+                    </div>
+                    <div class="lp-metric-bar-bg">
+                        <div id="stat-completion-bar" class="lp-metric-bar-fill" data-target="0"></div>
+                    </div>
+                </div>
+
+                <div class="lp-metric-block">
+                    <div class="lp-metric-header">
+                        <span>API Uptime (90 Days)</span>
+                        <span id="stat-uptime-text" style="color: #14b8a6;">0%</span>
+                    </div>
+                    <div class="lp-metric-bar-bg">
+                        <div id="stat-uptime-bar" class="lp-metric-bar-fill" data-target="0"></div>
+                    </div>
+                </div>
+                
+                <div class="lp-metric-block">
+                    <div class="lp-metric-header">
+                        <span>Bypass Prevention Rate</span>
+                        <span id="stat-bypass-text" style="color: #14b8a6;">0%</span>
+                    </div>
+                    <div class="lp-metric-bar-bg">
+                        <div id="stat-bypass-bar" class="lp-metric-bar-fill" data-target="0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal delay-2">
+                <div class="lp-code-preview">
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="terminal" style="width: 16px; height: 16px; color: #9ca3af;"></i> 
+                        <span style="color: #fff; font-weight: bold; font-family: 'Inter', sans-serif; font-size: 13px;">Simple Integration</span>
+                    </div>
+<pre><code><span class="comment">-- 1. Define user's key</span>
+<span class="func">getgenv</span>().kymor_key = <span class="string">"KYMOR-XXXX-XXXX"</span>
+
+<span class="comment">-- 2. Load Secure SDK</span>
+<span class="keyword">local</span> SDK = <span class="func">loadstring</span>(<span class="func">game</span>:HttpGet(<span class="string">"https://kymor.dev/sdk/library.lua"</span>))()
+SDK.script_id = <span class="string">"YOUR_UNIQUE_ID"</span>
+
+<span class="comment">-- 3. Authenticate</span>
+<span class="keyword">local</span> auth = SDK.check_key(<span class="func">getgenv</span>().kymor_key)
+
+<span class="keyword">if</span> auth.code == <span class="string">"KEY_VALID"</span> <span class="keyword">then</span>
+    <span class="comment">-- Executes protected code from our servers</span>
+    SDK.load_script() 
+<span class="keyword">else</span>
+    <span class="func">game</span>.Players.LocalPlayer:Kick(auth.message)
+<span class="keyword">end</span></code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="lp-container">
+        <section class="lp-cta-section lp-glass-panel reveal">
+            <h2>Start protecting your work today.</h2>
+            <p class="lp-section-desc" style="margin-bottom: 32px;">Join the fastest growing platform for Lua developers. Setup takes less than 5 minutes.</p>
+            <a href="/login" class="lp-btn-primary" style="padding: 16px 36px; font-size: 1.1rem;">
+                Create Your Hub <i data-lucide="zap" style="fill: black;"></i>
+            </a>
+        </section>
+    </div>
+
+    <footer class="lp-footer">
+        <div class="lp-container lp-footer-content">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="shield" style="width: 16px; height: 16px; color: #14b8a6;"></i>
+                <span style="font-weight: 800; color: #fff;">KYMOR</span>
+            </div>
+            <div>&copy; 2026 Kymor Platform. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

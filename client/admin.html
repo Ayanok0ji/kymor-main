@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kymor Admin Panel</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { background-color: #050505; color: #ffffff; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #14b8a6; }
+        .liquid-blob { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.25; z-index: -2; animation: float 20s infinite alternate ease-in-out; pointer-events: none; }
+        .blob-1 { width: 50vw; height: 50vw; max-width: 600px; max-height: 600px; background: #ef4444; top: -10%; left: -10%; }
+        .blob-2 { width: 40vw; height: 40vw; max-width: 500px; max-height: 500px; background: #14b8a6; bottom: -10%; right: -10%; animation-delay: -10s; }
+        .glass-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); background: rgba(5, 5, 5, 0.4); z-index: -1; pointer-events: none; }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(5%, 10%) scale(1.1); } 100% { transform: translate(-2%, -8%) scale(0.9); } }
+        #adminSidebar { transition: transform 0.3s ease-in-out; }
+        input:checked ~ .dot { transform: translateX(100%); background-color: #ef4444; }
+        input:checked ~ .toggle-bg { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.2); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden relative" style="font-family: 'Inter', sans-serif;">
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="glass-overlay"></div>
+
+    <div id="adminAuthOverlay" class="fixed inset-0 bg-[#050505] z-[200] flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-kymor-panel border border-kymor-border p-8 rounded-xl w-full max-w-sm shadow-2xl relative z-10 m-4">
+            <div class="flex justify-center mb-6">
+                <div class="bg-[#1a1a1c] border border-red-500/30 text-red-500 w-12 h-12 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <h2 class="text-xl font-bold text-center text-white mb-2">Admin Terminal</h2>
+            <p class="text-center text-xs text-gray-500 mb-6">Restricted access area.</p>
+            
+            <div id="credentialInputs" class="transition-all duration-300">
+                <input type="text" id="adminUser" placeholder="Username or Email" class="w-full bg-kymor-dark border border-kymor-border p-3 rounded-lg text-sm text-white mb-4">
+                <input type="password" id="adminPass" placeholder="Password" class="w-full bg-kymor-dark border border-kymor-border p-3 rounded-lg text-sm text-white mb-6" onkeypress="if(event.key === 'Enter') window.loginAdmin()">
+            </div>
+            
+            <div id="otpContainer" class="hidden transform scale-95 opacity-0 transition-all duration-300 mb-6">
+                <div class="flex items-center justify-center gap-2 mb-3 text-kymor-accent">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <p class="text-xs font-bold uppercase tracking-widest">2FA Required</p>
+                </div>
+                
+                <div class="flex gap-2 w-full justify-center mb-2" id="admin-otp-boxes">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="w-10 h-12 bg-kymor-dark border border-kymor-border rounded-lg text-center text-xl font-black text-white outline-none focus:border-kymor-accent transition" onkeypress="if(event.key === 'Enter') window.verifyAdminOtp()">
+                </div>
+
+                <button id="adminResendOtpBtn" onclick="window.triggerAdminResend()" disabled class="w-full mt-2 py-2 text-[11px] text-gray-500 font-bold hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Resend Code (60s)
+                </button>
+            </div>
+            
+            <button id="adminAuthBtn" onclick="window.loginAdmin()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 transition shadow-[0_0_15px_rgba(239,68,68,0.3)]">Authenticate</button>
+        </div>
+    </div>
+
+    <div id="mobileAdminOverlay" onclick="window.toggleAdminSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] hidden md:hidden"></div>
+
+    <div id="adminSidebar" class="w-[260px] bg-kymor-panel/70 backdrop-blur-xl border-r border-kymor-border/50 flex flex-col fixed md:relative h-full z-[50] transform -translate-x-full md:translate-x-0 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
+        <div class="p-6 flex items-center gap-3 mb-2">
+            <div class="bg-red-500/10 border border-red-500/30 w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-red-500"></i>
+            </div>
+            <div>
+                <h2 class="text-white font-bold text-lg leading-tight">Admin</h2>
+                <p class="text-red-500 text-[9px] font-bold tracking-widest uppercase">MASTER CONTROL</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto px-4 mt-2 flex flex-col">
+            <div class="space-y-1">
+                <p class="text-[10px] font-bold text-kymor-muted mb-3 px-3 uppercase tracking-widest pt-2">SYSTEM</p>
+                <button id="nav-dashboard" onclick="window.switchAdminTab('dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 bg-red-500/10 transition border border-red-500/20">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+                </button>
+                <button id="nav-analytics" onclick="window.switchAdminTab('analytics')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="activity" class="w-4 h-4"></i> Global Analytics
+                </button>
+                <button id="nav-users" onclick="window.switchAdminTab('users')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="users" class="w-4 h-4"></i> User Management
+                </button>
+                <button id="nav-hubs" onclick="window.switchAdminTab('hubs')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="layers" class="w-4 h-4"></i> Global Hubs
+                </button>
+                <button id="nav-keys" onclick="window.switchAdminTab('keys')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="key" class="w-4 h-4"></i> Premium Keys
+                </button>
+            </div>
+            
+            <div class="mt-auto pb-4 space-y-1">
+                <div class="w-full h-px bg-kymor-border my-4"></div>
+                <button id="nav-settings" onclick="window.switchAdminTab('settings')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Settings
+                </button>
+                <button onclick="window.location.href='/dashboard'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition border border-transparent">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> User Dashboard
+                </button>
+                <button onclick="window.logoutAdmin()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition border border-transparent">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> End Session
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <main class="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden w-full bg-transparent">
+        <header class="h-20 border-b border-kymor-border flex items-center justify-between px-4 md:px-10 shrink-0 bg-kymor-panel/30 backdrop-blur-md sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <button onclick="window.toggleAdminSidebar()" class="md:hidden text-gray-400 p-1 hover:text-white transition"><i data-lucide="menu"></i></button>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="font-bold text-red-500">Admin</span>
+                    <span class="text-gray-600">/</span>
+                    <span id="breadcrumb-current" class="font-bold text-white">Overview</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="window.loadAdminData()" class="bg-kymor-dark border border-kymor-border text-gray-400 hover:text-white p-2 rounded-lg transition" title="Refresh All Data">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-10 max-w-7xl mx-auto w-full">
+            
+            <div id="view-dashboard" class="space-y-6 block animate-fade-in">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div class="bg-kymor-panel border border-kymor-border p-4 md:p-6 rounded-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-xl"></div>
+                        <p class="text-[10px] text-gray-500 font-bold mb-1 md:mb-3 uppercase tracking-widest">Total Users</p>
+                        <h3 id="stat-users" class="text-2xl md:text-3xl font-bold text-white">0</h3>
+                    </div>
+                    <div class="bg-kymor-panel border border-kymor-border p-4 md:p-6 rounded-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-kymor-accent/10 rounded-full blur-xl"></div>
+                        <p class="text-[10px] text-gray-500 font-bold mb-1 md:mb-3 uppercase tracking-widest">Premium Users</p>
+                        <h3 id="stat-premium" class="text-2xl md:text-3xl font-bold text-kymor-accent">0</h3>
+                    </div>
+                    <div class="bg-kymor-panel border border-kymor-border p-4 md:p-6 rounded-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl"></div>
+                        <p class="text-[10px] text-gray-500 font-bold mb-1 md:mb-3 uppercase tracking-widest">Total Hubs</p>
+                        <h3 id="stat-hubs" class="text-2xl md:text-3xl font-bold text-white">0</h3>
+                    </div>
+                    <div class="bg-kymor-panel border border-kymor-border p-4 md:p-6 rounded-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+                        <p class="text-[10px] text-gray-500 font-bold mb-1 md:mb-3 uppercase tracking-widest">Total Executions</p>
+                        <h3 id="stat-execs" class="text-2xl md:text-3xl font-bold text-white">0</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6 lg:col-span-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="activity" class="w-5 h-5 text-green-500"></i>
+                            <h3 class="font-bold text-white">System Diagnostics</h3>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-kymor-dark border border-kymor-border rounded-lg p-4 text-center">
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">API Status</p>
+                                <p class="text-green-500 font-bold text-xs md:text-sm">ONLINE</p>
+                            </div>
+                            <div class="bg-kymor-dark border border-kymor-border rounded-lg p-4 text-center">
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Server Load</p>
+                                <p class="text-white font-bold text-xs md:text-sm">STABLE</p>
+                            </div>
+                            <div class="bg-kymor-dark border border-kymor-border rounded-lg p-4 text-center">
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Database</p>
+                                <p class="text-green-500 font-bold text-xs md:text-sm">CONNECTED</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="zap" class="w-5 h-5 text-vorange"></i>
+                            <h3 class="font-bold text-white">Quick Actions</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <button onclick="window.clearAllLogs()" class="w-full flex items-center justify-between bg-kymor-dark border border-kymor-border hover:border-red-500/50 hover:text-red-500 p-3 rounded-lg text-sm text-gray-400 transition">
+                                <span>Wipe Activity Logs</span> <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl mt-6">
+                    <div class="p-4 md:p-6 border-b border-kymor-border flex justify-between items-center">
+                        <h3 class="font-bold text-white text-sm md:text-base">Global Activity Log</h3>
+                        <button onclick="window.loadAdminActivity()" class="p-2 hover:bg-[#1a1a1c] rounded-lg transition text-gray-400 hover:text-white border border-kymor-border" title="Refresh Logs"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm whitespace-nowrap min-w-[700px]">
+                            <thead class="text-gray-500 border-b border-kymor-border uppercase text-[10px] tracking-widest">
+                                <tr><th class="pb-3 px-4">TIMESTAMP</th><th class="pb-3 px-4">USER</th><th class="pb-3 px-4">ACTION</th><th class="pb-3 px-4">DETAILS</th></tr>
+                            </thead>
+                            <tbody id="activityLogContainer"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-analytics" class="space-y-6 hidden animate-fade-in">
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-white">Platform Executions (7 Days)</h3>
+                            <p class="text-xs text-gray-500">Track total script hits across all hubs globally.</p>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="adminAnalyticsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl">
+                    <div class="p-4 md:p-6 border-b border-kymor-border flex justify-between items-center">
+                        <h3 class="font-bold text-white text-sm md:text-base">Recent Executions</h3>
+                        <button onclick="window.loadGlobalAnalytics()" class="p-2 bg-kymor-dark border border-kymor-border rounded-lg transition text-gray-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                            <thead class="text-gray-500 border-b border-kymor-border uppercase text-[10px] tracking-widest">
+                                <tr><th class="pb-3 px-4">TIMESTAMP</th><th class="pb-3 px-4">EXECUTOR</th><th class="pb-3 px-4">IP / COUNTRY</th><th class="pb-3 px-4">SCRIPT</th><th class="pb-3 px-4">HUB OWNER</th></tr>
+                            </thead>
+                            <tbody id="globalAnalyticsContainer">
+                                <tr><td colspan="5" class="py-6 text-center text-gray-500">Loading analytics...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-users" class="space-y-6 hidden animate-fade-in">
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl">
+                    <div class="p-4 md:p-6 border-b border-kymor-border flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">User Management</h3>
+                            <p class="text-xs text-gray-500 mt-1">View all registered accounts and manage premium status.</p>
+                        </div>
+                        <button onclick="window.loadUsers()" class="p-2 bg-kymor-dark border border-kymor-border rounded-lg transition text-gray-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                            <thead class="text-gray-500 border-b border-kymor-border uppercase text-[10px] tracking-widest">
+                                <tr><th class="pb-3 px-4">USERNAME</th><th class="pb-3 px-4">ID</th><th class="pb-3 px-4">STATUS</th><th class="pb-3 px-4">JOINED</th><th class="pb-3 px-4 text-right">ACTION</th></tr>
+                            </thead>
+                            <tbody id="usersContainer"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-hubs" class="space-y-6 hidden animate-fade-in">
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl">
+                    <div class="p-4 md:p-6 border-b border-kymor-border flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Global Hub Management</h3>
+                            <p class="text-xs text-gray-500 mt-1">View and moderate all hubs created on the platform.</p>
+                        </div>
+                        <button onclick="window.loadGlobalHubs()" class="p-2 bg-kymor-dark border border-kymor-border rounded-lg transition text-gray-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                            <thead class="text-gray-500 border-b border-kymor-border uppercase text-[10px] tracking-widest">
+                                <tr><th class="pb-3 px-4">HUB NAME</th><th class="pb-3 px-4">SHORT ID</th><th class="pb-3 px-4">OWNER</th><th class="pb-3 px-4">STATS</th><th class="pb-3 px-4 text-right">ACTION</th></tr>
+                            </thead>
+                            <tbody id="globalHubsContainer"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-keys" class="space-y-6 hidden animate-fade-in">
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6 md:p-8">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i data-lucide="key" class="w-6 h-6 text-[#b48600]"></i>
+                        <h3 class="font-bold text-lg text-white">Generate Premium Upgrade Keys</h3>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6">Generate single-use keys that any user can redeem to get instant Premium.</p>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">AMOUNT (1-50)</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="number" id="premKeyAmount" value="1" min="1" max="50" class="w-full sm:w-48 bg-[#0a0a0b] border border-kymor-border p-3 rounded-lg text-sm text-white focus:border-[#b48600]">
+                        <button onclick="window.generatePremiumKeys()" class="bg-[#b48600] text-black font-bold px-8 py-3 rounded-lg hover:bg-[#9a7300] transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(180,134,0,0.2)] w-full sm:w-auto"><i data-lucide="zap" class="w-4 h-4 text-black"></i> Generate</button>
+                    </div>
+                </div>
+
+                <div class="bg-kymor-panel border border-kymor-border rounded-xl">
+                    <div class="p-4 md:p-6 border-b border-kymor-border flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">All Premium Keys</h3>
+                            <p class="text-xs text-gray-500 mt-1">Single-use upgrade keys across the platform</p>
+                        </div>
+                        <button onclick="window.loadPremiumKeys()" class="p-2 bg-kymor-dark border border-kymor-border rounded-lg transition text-gray-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm whitespace-nowrap min-w-[700px]">
+                            <thead class="text-gray-500 border-b border-kymor-border uppercase text-[10px] tracking-widest">
+                                <tr><th class="pb-3 px-4">KEY CODE</th><th class="pb-3 px-4">STATUS</th><th class="pb-3 px-4">CREATED</th><th class="pb-3 px-4 text-right">ACTION</th></tr>
+                            </thead>
+                            <tbody id="premiumKeysContainer"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="space-y-6 hidden animate-fade-in max-w-4xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-2 gap-4">
+                    <h2 class="text-2xl font-bold">Platform Configurations</h2>
+                    <button onclick="window.savePlatformConfig(this)" class="bg-[#5865F2] text-white font-bold px-6 py-2.5 rounded-lg hover:bg-[#4752C4] transition shadow-[0_0_15px_rgba(88,101,242,0.2)] flex items-center justify-center gap-2 w-full md:w-auto">
+                        <i data-lucide="save" class="w-4 h-4"></i> Save All Settings
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="power" class="w-5 h-5 text-red-500"></i>
+                            <h3 class="font-bold text-lg text-white">Global State</h3>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-6">Manage global application states.</p>
+                        
+                        <label class="flex items-center cursor-pointer mb-4">
+                            <div class="relative">
+                                <input type="checkbox" id="adminMaintenanceMode" class="sr-only">
+                                <div class="block bg-kymor-dark border border-kymor-border w-10 h-6 rounded-full transition-colors toggle-bg"></div>
+                                <div class="dot absolute left-1 top-1 bg-gray-400 w-4 h-4 rounded-full transition-transform"></div>
+                            </div>
+                            <div class="ml-3 text-sm font-bold text-white uppercase tracking-widest">Maintenance Mode</div>
+                        </label>
+                        <p class="text-[10px] text-gray-500">If enabled, standard users will not be able to interact with the platform.</p>
+                    </div>
+
+                    <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="bot" class="w-5 h-5 text-[#5865F2]"></i>
+                            <h3 class="font-bold text-lg text-white">Discord OAuth2</h3>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4">Used for the "Require Discord" feature on reward pages.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">CLIENT ID</label>
+                                <input type="text" id="adminDiscordClientId" class="w-full bg-kymor-dark border border-kymor-border p-2.5 rounded-lg text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">CLIENT SECRET</label>
+                                <input type="password" id="adminDiscordClientSecret" class="w-full bg-kymor-dark border border-kymor-border p-2.5 rounded-lg text-sm text-white" placeholder="Hidden for security">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6 md:col-span-2">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="credit-card" class="w-5 h-5 text-green-500"></i>
+                            <h3 class="font-bold text-lg text-white">Payment Integrations</h3>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-6">Manage all automated checkout links across the platform.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block flex justify-between">
+                                    <span>PAYMONGO SECRET KEY</span> <span class="text-[#0052FE]">GCASH/MAYA</span>
+                                </label>
+                                <input type="password" id="adminPaymongoKey" class="w-full bg-kymor-dark border border-kymor-border p-3 rounded-lg text-sm text-white focus:border-[#0052FE]" placeholder="sk_test_XXXXXX">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block flex justify-between">
+                                    <span>PAYPAL CLIENT ID</span> <span class="text-kymor-accent">AUTOMATED</span>
+                                </label>
+                                <input type="text" id="adminPaypalClientId" class="w-full bg-kymor-dark border border-kymor-border p-3 rounded-lg text-sm text-white focus:border-kymor-accent" placeholder="Enter Live or Sandbox ID">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block flex justify-between">
+                                    <span>PAYPAL CLIENT SECRET</span> <span class="text-kymor-accent">AUTOMATED</span>
+                                </label>
+                                <input type="password" id="adminPaypalClientSecret" class="w-full bg-kymor-dark border border-kymor-border p-3 rounded-lg text-sm text-white focus:border-kymor-accent" placeholder="Enter Secret Key">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="customConfirmModal" class="fixed inset-0 bg-[#050505]/80 backdrop-blur-sm z-[300] hidden flex items-center justify-center transition-opacity duration-200 opacity-0 pointer-events-auto">
+        <div class="bg-kymor-panel border border-kymor-border p-6 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 m-4">
+            <div class="flex flex-col items-center text-center">
+                <div id="confirmIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <i id="confirmIcon"></i>
+                </div>
+                <h3 id="confirmTitle" class="text-xl font-bold text-white mb-2">Title</h3>
+                <p id="confirmMessage" class="text-sm text-gray-400 mb-6">Message</p>
+                <div class="flex gap-3 w-full">
+                    <button id="confirmCancelBtn" class="flex-1 bg-kymor-dark border border-kymor-border hover:bg-[#1a1a1c] text-white font-bold py-2.5 rounded-lg transition">Cancel</button>
+                    <button id="confirmActionBtn" class="flex-1 text-white font-bold py-2.5 rounded-lg transition">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script type="module" src="/js/admin_app.js"></script>
+</body>
+</html>

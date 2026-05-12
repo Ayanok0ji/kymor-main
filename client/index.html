@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kymor Console</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+      import createGlobe from "https://esm.sh/cobe";
+      window.createGlobe = createGlobe;
+    </script>
+  </head>
+
+  <body class="text-gray-200 h-screen flex overflow-hidden relative selection:bg-[#14b8a6] selection:text-black" style="font-family: &quot;Inter&quot;, sans-serif">
+    <div id="paymentVerificationOverlay" class="hidden fixed inset-0 z-[500] bg-[#050505]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-4 transition-opacity duration-500">
+      <div id="verifyIcon" class="w-28 h-28 rounded-full bg-[#14b8a6]/10 border border-[#14b8a6]/30 flex items-center justify-center mb-8 relative shadow-[0_0_40px_rgba(20,184,166,0.2)]">
+        <div class="absolute inset-0 rounded-full border-t-2 border-l-2 border-[#14b8a6] animate-spin"></div>
+        <i data-lucide="shield-check" class="w-12 h-12 text-[#14b8a6] relative z-10 animate-pulse"></i>
+      </div>
+      <h2 id="verifyTitle" class="text-4xl font-black text-white mb-4 tracking-tight">
+        Securing Payment...
+      </h2>
+      <p id="verifyDesc" class="text-base text-gray-400 max-w-md leading-relaxed mb-10">
+        Please wait while we establish a secure connection with the gateway and verify your transaction block.
+      </p>
+      <button id="verifyCloseBtn" onclick="closeVerification()" class="hidden bg-[#1a1a1c] border border-[#2b2b36] text-white font-bold px-8 py-3.5 rounded-xl hover:bg-[#2b2b36] transition shadow-lg">
+        Return to Dashboard
+      </button>
+    </div>
+
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="glass-overlay"></div>
+
+    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[40] hidden md:hidden"></div>
+
+    <div id="sidebar" class="w-[260px] bg-[#0a0a0b]/80 backdrop-blur-2xl border-r border-white/5 flex flex-col fixed md:relative h-full z-[50] transform -translate-x-full md:translate-x-0 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
+      <div class="p-6 flex items-center gap-3 mb-2">
+        <div class="bg-gradient-to-br from-[#1a1a1c] to-[#0a0a0b] border border-white/10 w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+          <img src="/assets/logo.svg" alt="Kymor Logo" class="w-full h-full object-contain p-1.5" />
+        </div>
+        <div>
+          <h2 class="text-white font-black text-lg leading-tight tracking-tight">Kymor</h2>
+          <p class="text-[#14b8a6] text-[9px] font-black tracking-widest uppercase">CONSOLE</p>
+        </div>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto px-4 mt-4">
+        <button onclick="showSection('hubs')" id="nav-hubs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-[#14b8a6] bg-[#14b8a6]/10 transition mb-1 border border-[#14b8a6]/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <i data-lucide="layers" class="w-4 h-4"></i> My Hubs
+        </button>
+        <button onclick="showSection('discord')" id="nav-discord" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition mb-1 border border-transparent">
+          <i data-lucide="message-square" class="w-4 h-4"></i> Discord Bot
+        </button>
+        <a href="/docs" id="nav-docs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition mb-8 border border-transparent">
+          <i data-lucide="book-open" class="w-4 h-4"></i> Documentation
+        </a>
+
+        <a href="/admin" id="nav-admin-panel" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition mb-1 border border-red-500/20 shadow-sm">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i> Admin Panel
+        </a>
+        <a href="/" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition border border-transparent">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Return
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4 shrink-0">
+        <div id="upgradeBtnContainer" class="mb-4 px-2 transition-all duration-300">
+          <div class="flex justify-between items-center mb-2">
+            <span id="planName" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">Loading...</span>
+            <span id="hubCountText" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">--</span>
+          </div>
+          <div id="upgradeActionBox">
+            <div class="w-full h-10 bg-white/5 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+
+        <div class="bg-[#121214]/60 border border-white/5 backdrop-blur-md p-3 rounded-xl flex items-center gap-3 shadow-inner hover:bg-[#1a1a1c] transition cursor-pointer" onclick="openAccountSettings()">
+          <div class="bg-gradient-to-br from-[#1a1a1c] to-[#0a0a0b] border border-white/10 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm">
+            <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-sm font-bold text-white leading-tight truncate" id="ui-username">Loading...</p>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider leading-tight truncate mt-0.5">Manage Profile</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main class="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden w-full bg-transparent">
+      <div id="section-hubs" class="block h-full">
+        <header class="h-20 border-b border-white/5 flex items-center justify-between px-6 md:px-10 shrink-0 bg-[#050505]/40 backdrop-blur-md sticky top-0 z-40">
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="md:hidden text-gray-400 p-1 rounded-lg">
+              <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <h1 class="text-xl font-bold flex items-center gap-2">
+              <i data-lucide="layers" class="text-[#14b8a6] w-5 h-5"></i> My Hubs
+            </h1>
+          </div>
+          <button onclick="toggleModal('hubModal')" class="bg-[#14b8a6] text-black font-bold px-4 py-2 rounded-lg flex items-center gap-2 text-sm hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden md:inline">New Hub</span>
+          </button>
+        </header>
+        <div class="p-6 md:p-10" id="hubs-container"></div>
+      </div>
+
+      <div id="section-discord" class="hidden h-full">
+        <header class="h-20 border-b border-white/5 flex items-center justify-between px-6 md:px-10 shrink-0 bg-[#050505]/40 backdrop-blur-md sticky top-0 z-40">
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="md:hidden text-gray-400 p-1 rounded-lg">
+              <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <h1 class="text-xl font-bold flex items-center gap-2">
+              <i data-lucide="message-square" class="text-[#14b8a6] w-5 h-5"></i> Global Discord Bot
+            </h1>
+          </div>
+        </header>
+        <div class="p-6 md:p-10 flex justify-center items-start">
+          <div class="bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8 w-full max-w-2xl shadow-xl mt-10 relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#5865F2]/10 rounded-full blur-3xl pointer-events-none"></div>
+            <h2 class="text-2xl font-bold mb-2 text-white relative z-10">Discord Bot API</h2>
+            <p class="text-sm text-gray-400 mb-8 relative z-10">
+              Link your Discord server to enable auto-roles, key generation commands, and more.
+            </p>
+
+            <div class="bg-[#1e1e24]/80 backdrop-blur-md border border-[#2b2b36] p-5 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 shadow-inner relative z-10">
+              <div class="flex items-center gap-3">
+                <i data-lucide="message-square" class="w-5 h-5 text-[#5865F2]"></i>
+                <div>
+                  <h3 class="font-bold text-sm text-[#5865F2]">Step 1: Add the Bot</h3>
+                  <p class="text-xs text-gray-400 mt-0.5">Invite the official Kymor bot to your server.</p>
+                </div>
+              </div>
+              <button onclick="showToast('Ensure the Bot is online via your Discord Portal!', 'info')" class="w-full sm:w-auto bg-[#5865F2] text-white font-bold px-5 py-2.5 rounded-lg text-sm transition hover:bg-[#4752C4] shrink-0 shadow-[0_0_15px_rgba(88,101,242,0.2)]">
+                Invite Bot
+              </button>
+            </div>
+
+            <h3 class="text-[10px] text-gray-500 font-bold uppercase mb-2 tracking-widest relative z-10">
+              STEP 2: YOUR SECRET API KEY
+            </h3>
+            <p class="text-sm text-gray-400 mb-4 relative z-10">
+              Use this with the <code class="bg-[#121214] text-[#14b8a6] px-1.5 py-0.5 rounded border border-white/5">/login</code> command in your server.
+            </p>
+            <div class="flex gap-2 mb-3 relative z-10">
+              <input type="text" id="discordApiKeyInput" readonly class="w-full bg-[#050505] border border-white/10 p-3.5 rounded-lg text-green-400 font-mono text-sm outline-none shadow-inner" />
+              <button onclick="copyApiKey()" class="bg-[#121214] border border-white/10 text-gray-400 hover:text-[#14b8a6] px-4 rounded-lg transition shrink-0 font-bold flex items-center justify-center shadow-inner">
+                <i data-lucide="copy" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <p class="text-xs text-red-500 mb-8 font-bold flex items-center gap-1.5 relative z-10">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Never share this key.
+            </p>
+
+            <div class="flex justify-between items-center border-t border-white/5 pt-6 relative z-10">
+              <button onclick="regenerateApiKey()" class="text-sm text-red-500 border border-red-500/20 bg-red-500/5 px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-red-500/10 transition font-bold">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Regenerate
+              </button>
+              <button onclick="showSection('hubs')" class="bg-[#14b8a6] text-black font-bold px-8 py-2.5 rounded-lg text-sm transition hover:bg-[#0d9488] shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="section-hub-details" class="hidden h-full flex flex-col">
+        <header class="h-20 border-b border-white/5 flex items-center justify-between px-4 md:px-10 shrink-0 bg-[#050505]/60 backdrop-blur-md sticky top-0 z-40">
+          <div class="flex items-center gap-2 text-sm text-gray-400 w-full overflow-hidden">
+            <button onclick="toggleSidebar()" class="md:hidden text-gray-400 p-2 rounded-lg bg-white/5 border border-white/10 shrink-0">
+              <i data-lucide="menu" class="w-4 h-4"></i>
+            </button>
+            <button onclick="showSection('hubs')" class="p-2 hover:text-white transition shrink-0 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            </button>
+            <span class="text-gray-700">/</span>
+            <span id="active-hub-name" class="font-bold text-white text-sm md:text-lg truncate max-w-[100px] md:max-w-none">Hub</span>
+            <span class="text-gray-700">/</span>
+            <span id="active-tab-name" class="font-bold text-[#14b8a6] text-sm md:text-lg truncate">Overview</span>
+          </div>
+        </header>
+
+        <div class="border-b border-white/5 px-6 md:px-10 flex gap-6 text-sm overflow-x-auto shrink-0 whitespace-nowrap scrollbar-hide bg-[#0a0a0b]/80 backdrop-blur-md">
+          <button onclick="switchTab('scripts')" id="tab-scripts" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="code" class="w-4 h-4"></i> Scripts
+          </button>
+          <button onclick="switchTab('keys')" id="tab-keys" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="key" class="w-4 h-4"></i> Keys & Auth
+          </button>
+          <button onclick="switchTab('blacklist')" id="tab-blacklist" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="shield-ban" class="w-4 h-4"></i> Blacklist
+          </button>
+          <button onclick="switchTab('rewards')" id="tab-rewards" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="gift" class="w-4 h-4"></i> Rewards
+          </button>
+          <button onclick="switchTab('page')" id="tab-btn-page" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="palette" class="w-4 h-4"></i> Page
+          </button>
+          <button onclick="switchTab('setup')" id="tab-setup" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="settings" class="w-4 h-4"></i> Setup
+          </button>
+          <button onclick="switchTab('analytics')" id="tab-analytics" class="h-12 flex items-center gap-2 font-medium text-gray-400 border-b-2 border-transparent transition hover:text-white">
+            <i data-lucide="line-chart" class="w-4 h-4"></i> Analytics
+          </button>
+        </div>
+
+        <div class="p-6 md:p-10 flex-1 overflow-y-auto">
+          <div id="view-scripts" class="hidden">
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl">
+              <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/5 pb-6">
+                <div>
+                  <h2 class="text-xl font-bold text-white">Stored Scripts</h2>
+                  <p class="text-sm text-gray-500 mt-1">Scripts are served to users on key auth. Click "Loader" to get the snippet.</p>
+                </div>
+                <button onclick="openAddScript()" class="bg-[#14b8a6] text-black font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:bg-[#0d9488] transition w-full md:w-auto justify-center">
+                  <i data-lucide="code" class="w-4 h-4"></i> Add Script
+                </button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap min-w-[500px]">
+                  <thead class="text-gray-500 border-b border-white/10 uppercase text-[10px] tracking-widest">
+                    <tr>
+                      <th class="pb-3 px-2">NAME</th>
+                      <th class="pb-3 px-2">SCRIPT ID</th>
+                      <th class="pb-3 px-2">OBFUSCATOR</th>
+                      <th class="pb-3 px-2 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scripts-container"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-keys" class="hidden animate-fade-in">
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl flex flex-col h-full">
+              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b border-white/5 pb-6 shrink-0">
+                <div>
+                  <h2 class="text-xl font-bold text-white">Key Management</h2>
+                  <p class="text-sm text-gray-500 mt-1">Search, generate, and manage access tokens.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                  <div class="relative w-full sm:w-64 shrink-0">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                    <input type="text" id="searchKeysInput" oninput="window.searchKeys()" placeholder="Search keys, notes, HWID..." class="w-full bg-[#050505] border border-white/10 pl-9 pr-4 py-2.5 rounded-xl text-sm text-white focus:border-[#14b8a6] outline-none shadow-inner transition" />
+                  </div>
+                  
+                  <div class="flex gap-3 w-full sm:w-auto shrink-0">
+                    <button onclick="toggleModal('bulkKeysModal')" class="flex-1 sm:flex-none border border-white/10 bg-[#050505] text-gray-300 font-bold px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:text-white hover:bg-white/5 transition">
+                      <i data-lucide="settings" class="w-4 h-4"></i> Bulk Actions
+                    </button>
+                    <button onclick="openGenerateKeys()" class="flex-1 sm:flex-none bg-[#14b8a6] text-black font-bold px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:bg-[#0d9488] transition">
+                      <i data-lucide="zap" class="w-4 h-4"></i> Generate
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="overflow-auto custom-scrollbar max-h-[600px] border border-white/5 rounded-lg bg-[#050505]">
+                <table class="w-full text-left text-sm whitespace-nowrap min-w-[700px]">
+                  <thead class="text-gray-500 text-[10px] tracking-widest uppercase bg-[#0a0a0b] sticky top-0 z-10 shadow-sm">
+                    <tr>
+                      <th class="py-3 px-4 border-b border-white/10">KEY STRING</th>
+                      <th class="py-3 px-4 border-b border-white/10">NOTE / DURATION</th>
+                      <th class="py-3 px-4 border-b border-white/10">HWID / EXECS</th>
+                      <th class="py-3 px-4 border-b border-white/10">STATUS</th>
+                      <th class="py-3 px-4 border-b border-white/10 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="keys-container"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-blacklist" class="hidden animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl h-max">
+                <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 shadow-inner">
+                  <i data-lucide="shield-alert" class="w-6 h-6 text-red-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">Block Access</h3>
+                <p class="text-xs text-gray-500 mb-6">Manually ban an IP address or HWID from accessing this hub.</p>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Identifier (IP or HWID)</label>
+                    <input type="text" id="blacklistTarget" class="w-full bg-[#050505] border border-white/10 rounded-lg p-3 text-white text-sm shadow-inner focus:border-red-500 outline-none transition" placeholder="e.g. 192.168.1.1" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Reason</label>
+                    <input type="text" id="blacklistReason" class="w-full bg-[#050505] border border-white/10 rounded-lg p-3 text-white text-sm shadow-inner focus:border-red-500 outline-none transition" placeholder="e.g. Attempting to bypass auth" />
+                  </div>
+                  <button onclick="window.addBlacklist()" class="w-full bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white font-bold py-3 rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="ban" class="w-4 h-4"></i> Add to Blacklist
+                  </button>
+                </div>
+              </div>
+
+              <div class="hover-panel lg:col-span-2 bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                  <h3 class="font-bold text-lg text-white">Active Restrictions</h3>
+                  <span id="blacklistCount" class="text-xs font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-md border border-red-500/20">0 Banned</span>
+                </div>
+                <div class="overflow-auto custom-scrollbar max-h-[500px]">
+                  <table class="w-full text-left text-sm whitespace-nowrap min-w-[500px]">
+                    <thead class="text-gray-500 text-[10px] tracking-widest uppercase sticky top-0 bg-[#0a0a0b] shadow-sm">
+                      <tr>
+                        <th class="pb-3 px-2 border-b border-white/10">TARGET (IP / HWID)</th>
+                        <th class="pb-3 px-2 border-b border-white/10">REASON</th>
+                        <th class="pb-3 px-2 border-b border-white/10 text-right">ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody id="blacklist-container">
+                       <tr><td colspan="3" class="py-6 text-center text-gray-500 text-xs">No records found.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-rewards" class="hidden max-w-5xl mx-auto space-y-6">
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl">
+              <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-[#14b8a6]/10 rounded-lg text-[#14b8a6]">
+                    <i data-lucide="gift" class="w-5 h-5"></i>
+                  </div>
+                  <h3 class="font-bold text-lg text-white">Key Distribution</h3>
+                </div>
+                <label class="flex items-center text-sm cursor-pointer">
+                  <span class="mr-3 text-gray-400">Enabled</span>
+                  <input type="checkbox" id="rewEnabled" class="w-5 h-5 accent-[#14b8a6] rounded bg-[#050505] border-white/10" />
+                </label>
+              </div>
+              <label class="flex items-center p-4 bg-[#050505] border border-white/5 rounded-lg cursor-pointer mb-6 hover:border-white/20 transition shadow-inner">
+                <input type="checkbox" id="rewFree" class="mr-4 w-5 h-5 accent-[#14b8a6] rounded bg-[#121214] border-white/10" />
+                <div>
+                  <p class="font-bold text-sm text-white">Enable Free Keys</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Users get a key instantly without completing checkpoints.</p>
+                </div>
+              </label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Base Key Duration</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rewBaseDurationVal" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" placeholder="0 = Lifetime" min="0" />
+                        <select id="rewBaseDurationUnit" class="bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner appearance-none cursor-pointer shrink-0 w-32">
+                            <option value="3600">Hours</option>
+                            <option value="86400">Days</option>
+                            <option value="604800">Weeks</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Add Time Amount</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rewAddTimeVal" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" min="1" />
+                        <select id="rewAddTimeUnit" class="bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner appearance-none cursor-pointer shrink-0 w-32">
+                             <option value="3600">Hours</option>
+                            <option value="86400">Days</option>
+                            <option value="604800">Weeks</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Max Time Limit</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rewMaxTimeVal" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" min="1" />
+                        <select id="rewMaxTimeUnit" class="bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner appearance-none cursor-pointer shrink-0 w-32">
+                             <option value="3600">Hours</option>
+                            <option value="86400">Days</option>
+                            <option value="604800">Weeks</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Cooldown Timer</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rewCooldownVal" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" placeholder="0 = None" min="0" />
+                        <select id="rewCooldownUnit" class="bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner appearance-none cursor-pointer shrink-0 w-32">
+                             <option value="60">Mins</option>
+                             <option value="3600">Hours</option>
+                            <option value="86400">Days</option>
+                            <option value="604800">Weeks</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Max Keys Per User</label>
+                  <input type="number" id="rewMaxKeys" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Checkpoint Timeout (Mins)</label>
+                  <input type="number" id="rewTimeout" class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" />
+                </div>
+              </div>
+              <div class="flex flex-col gap-5 mb-6">
+                <label class="flex items-start cursor-pointer group">
+                  <input type="checkbox" id="rewReset" class="mt-0.5 mr-4 w-5 h-5 accent-[#14b8a6] rounded bg-[#121214] border-white/10 shrink-0 transition" />
+                  <div>
+                    <p class="font-bold text-sm text-white">Allow users to forget their browser</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Shows a "Forget Browser Session" link on the claim page.</p>
+                  </div>
+                </label>
+              </div>
+              <div class="mt-6 border-t border-white/5 pt-6">
+                <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-widest">Public Claim URL</p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <input type="text" id="rewUrl" readonly class="w-full bg-[#050505] border border-white/5 p-3 rounded-lg text-[#14b8a6] font-mono text-sm outline-none shadow-inner" />
+                  <div class="flex gap-2 shrink-0">
+                    <button onclick="copyToClipboard(document.getElementById('rewUrl').value, 'Claim URL Copied!')" class="bg-[#121214] border border-white/10 text-white font-bold px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 hover:bg-white/10 transition">
+                      <i data-lucide="copy" class="w-4 h-4"></i> Copy
+                    </button>
+                    <button onclick="saveRewardsConfig(event)" class="bg-[#14b8a6] text-black font-bold px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                      <i data-lucide="save" class="w-4 h-4"></i> Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="relative space-y-6">
+              <div id="overlay-rewards-premium" class="absolute inset-0 bg-[#0a0a0b]/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-6 hidden">
+                <div class="text-4xl mb-3">👑</div>
+                <h3 class="text-xl font-bold text-white mb-2">Premium Feature</h3>
+                <p class="text-sm text-gray-400 mb-6 max-w-md">Ad checkpoints and live user session tracking require a Premium account. Free key distribution works without Premium.</p>
+                <a href="/upgrade" class="bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.2)]"><i data-lucide="star" class="w-4 h-4 text-black fill-black"></i> Upgrade to Premium</a>
+                <p class="text-[10px] text-gray-600 mt-4 font-bold uppercase tracking-widest">Powered by Kymor</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#121214]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+                  <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center shadow-inner">
+                      <i data-lucide="users" class="text-orange-500 w-6 h-6"></i>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Registered Visitors</p>
+                      <h3 id="stat-registered-visitors" class="text-3xl font-black text-white">0</h3>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-2">
+                      <span id="stat-visitors-text">0/0 Completed</span>
+                    </div>
+                    <div class="w-full bg-[#050505] rounded-full h-1.5 shadow-inner border border-white/5">
+                      <div id="stat-visitors-bar" class="bg-gradient-to-r from-orange-600 to-orange-400 h-full rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)] transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-[#121214]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+                  <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 bg-pink-500/10 border border-pink-500/20 rounded-xl flex items-center justify-center shadow-inner">
+                      <i data-lucide="flag" class="text-pink-500 w-6 h-6"></i>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Total Checkpoints</p>
+                      <h3 id="stat-total-checkpoints" class="text-3xl font-black text-white">0</h3>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-2">
+                      <span id="stat-checkpoints-text">0 Active Steps</span>
+                    </div>
+                    <div class="w-full bg-[#050505] rounded-full h-1.5 shadow-inner border border-white/5">
+                      <div id="stat-checkpoints-bar" class="bg-gradient-to-r from-pink-600 to-pink-400 h-full rounded-full shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl">
+                <div class="flex justify-between items-end mb-6 border-b border-white/5 pb-4">
+                  <div>
+                    <h3 class="font-bold text-lg text-white mb-1">Checkpoints Graph</h3>
+                    <p class="text-xs text-gray-500 flex items-center gap-1.5">
+                      <i data-lucide="clock" class="w-3.5 h-3.5 text-[#14b8a6]"></i> Last 7 Days
+                    </p>
+                  </div>
+                </div>
+                <div class="relative w-full h-[300px]">
+                  <canvas id="rewardsGraphCanvas"></canvas>
+                </div>
+              </div>
+
+              <div class="relative overflow-hidden rounded-xl border border-white/5 bg-[#0a0a0b]/80 backdrop-blur-xl shadow-xl hover-panel">
+                <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                  <div>
+                    <h3 class="font-bold text-lg text-white">Checkpoints</h3>
+                    <p class="text-xs text-gray-500 mt-1">Users complete them in order to earn the reward.</p>
+                  </div>
+                  <button onclick="openCheckpointModal()" class="bg-[#14b8a6]/10 border border-[#14b8a6]/30 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 text-[#14b8a6] hover:bg-[#14b8a6] hover:text-black transition shadow-inner">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Add
+                  </button>
+                </div>
+                <div class="overflow-x-auto p-4">
+                  <table class="w-full text-left text-sm whitespace-nowrap min-w-[1200px]">
+                    <thead class="text-gray-500 border-b border-white/10 uppercase text-[10px] tracking-widest">
+                      <tr>
+                        <th class="pb-3 px-4 w-10">#</th>
+                        <th class="pb-3 px-4">PROVIDER</th>
+                        <th class="pb-3 px-4">SETUP URL</th>
+                        <th class="pb-3 px-4">COMPLETED / CANCELLED</th>
+                        <th class="pb-3 px-4">AVG. TIME SPENT</th>
+                        <th class="pb-3 px-4 text-right">ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody id="checkpoints-container"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="relative overflow-hidden rounded-xl border border-white/5 bg-[#0a0a0b]/80 backdrop-blur-xl shadow-xl hover-panel">
+                <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                  <div>
+                    <h3 class="font-bold text-lg text-white">User Sessions</h3>
+                    <p class="text-xs text-gray-500 mt-1">Last 50 active or completed sessions.</p>
+                  </div>
+                  <div class="flex gap-2 shrink-0">
+                    <button onclick="loadSessions()" class="bg-[#121214] border border-white/10 p-2 rounded-lg text-gray-400 hover:text-white transition">
+                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="wipeSessions()" class="bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white transition">
+                      <i data-lucide="trash" class="w-4 h-4"></i> Wipe
+                    </button>
+                  </div>
+                </div>
+                <div class="overflow-x-auto p-4">
+                  <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                    <thead class="text-gray-500 border-b border-white/10 uppercase text-[10px] tracking-widest">
+                      <tr>
+                        <th class="pb-3 px-4">SESSION ID</th>
+                        <th class="pb-3 px-4">IP</th>
+                        <th class="pb-3 px-4">PROGRESS</th>
+                        <th class="pb-3 px-4">KEY EARNED</th>
+                        <th class="pb-3 px-4 text-right">LAST ACTIVE</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sessions-container"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-page" class="hidden animate-fade-in p-4 md:p-8 max-w-4xl mx-auto space-y-6">
+            <div class="bg-kymor-panel border border-kymor-border rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+              <div class="flex items-center gap-4 w-full md:w-auto shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="pagePublished" class="sr-only peer" />
+                  <div class="w-11 h-6 bg-[#1a1a1c] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-kymor-accent"></div>
+                </label>
+                <span class="font-bold text-white text-sm">Published</span>
+              </div>
+              <div class="flex-1 w-full md:px-4 overflow-hidden">
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Public URL</p>
+                <a href="#" id="page-public-url" target="_blank" class="text-kymor-accent text-xs font-mono hover:underline truncate block w-full">https://kymor.dev/p/...</a>
+              </div>
+              <div class="flex gap-2 w-full md:w-auto">
+                <button type="button" onclick="previewPage()" class="flex-1 md:flex-none bg-transparent border border-kymor-border hover:bg-[#1a1a1c] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition text-sm">
+                  <i data-lucide="eye" class="w-4 h-4"></i> Preview
+                </button>
+                <button type="button" onclick="savePageSettings()" class="flex-1 md:flex-none bg-kymor-accent hover:bg-[#0d9488] text-black font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 transition text-sm shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                  <i data-lucide="save" class="w-4 h-4"></i> Save
+                </button>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 space-y-6 shadow-xl">
+              <div class="flex items-center gap-2">
+                <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider">Page Settings</h3>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Title</label>
+                  <input type="text" id="pageTitle" class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-white text-sm focus:border-[#14b8a6] outline-none transition shadow-inner" />
+                </div>
+                <div class="space-y-2 relative">
+                  <label class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">
+                    Custom Slug <i data-lucide="lock" class="w-3 h-3 text-[#14b8a6]" id="lock-slug"></i>
+                  </label>
+                  <input type="text" id="pageSlug" disabled placeholder="Premium Only" class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-white text-sm focus:border-[#14b8a6] outline-none transition disabled:opacity-50 disabled:cursor-not-allowed shadow-inner" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Key Mode</label>
+                  <select id="pageKeyMode" class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-white text-sm focus:border-[#14b8a6] outline-none appearance-none cursor-pointer shadow-inner">
+                    <option value="none">No Key Button</option>
+                    <option value="free">Free Key (Rewards)</option>
+                    <option value="paid">Paid Only</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Buy Link</label>
+                  <input type="url" id="pageBuyLink" placeholder="https://sellix.io/..." class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-white text-sm focus:border-[#14b8a6] outline-none transition shadow-inner" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Branding Color</label>
+                  <div class="flex gap-2">
+                    <input type="color" id="pageColorPicker" value="#14b8a6" class="w-12 h-[46px] rounded-lg border border-white/10 cursor-pointer bg-[#050505] p-1 shrink-0 shadow-inner" />
+                    <input type="text" id="pageColorHex" value="#14b8a6" class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-[#14b8a6] text-sm font-mono uppercase focus:border-[#14b8a6] outline-none shadow-inner" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-[10px] font-bold text-gray-500 uppercase">Meta Description</label>
+                <textarea id="pageDescription" rows="3" placeholder="Describe your script for SEO..." class="w-full bg-[#050505] border border-white/5 rounded-lg p-3 text-white text-sm focus:border-[#14b8a6] outline-none transition resize-none shadow-inner"></textarea>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 mb-6 shadow-xl">
+              <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
+                  <h3 class="font-bold text-white text-sm uppercase">Images</h3>
+                </div>
+                <button type="button" onclick="triggerImageUpload()" class="bg-[#121214] border border-white/10 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition shadow-sm">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload
+                </button>
+              </div>
+              <div class="text-center py-8 text-gray-500 text-sm italic border border-dashed border-white/10 bg-[#050505] rounded-xl shadow-inner">
+                Upload an image directly to your hub.
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 w-full shadow-xl">
+              <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="layout-template" class="w-4 h-4 text-gray-400"></i>
+                  <h3 class="font-bold text-white text-sm uppercase">Page Elements</h3>
+                </div>
+                <span id="elements-count-display" class="text-[10px] text-gray-500 font-bold">0/8 (Free)</span>
+              </div>
+
+              <div class="flex flex-wrap gap-2 mb-8 bg-[#050505] p-2 rounded-xl border border-white/5 shadow-inner">
+                <button type="button" onclick="addPageElement('hero')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i> Hero
+                </button>
+                <button type="button" onclick="addPageElement('text')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="align-left" class="w-3.5 h-3.5"></i> Text
+                </button>
+                <button type="button" onclick="addPageElement('features')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="grid" class="w-3.5 h-3.5"></i> Features
+                </button>
+                <button type="button" onclick="addPageElement('buy')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Buy
+                </button>
+                <button type="button" onclick="addPageElement('key')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="key" class="w-3.5 h-3.5"></i> Get Key
+                </button>
+                <button type="button" onclick="addPageElement('divider')" class="flex-1 md:flex-none bg-[#121214] border border-white/5 text-gray-300 text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:border-[#14b8a6] hover:text-[#14b8a6] transition">
+                  <i data-lucide="minus" class="w-3.5 h-3.5"></i> Divider
+                </button>
+              </div>
+
+              <div id="elements-container" class="space-y-3 w-full">
+                <div class="text-center py-10 text-gray-500 text-sm italic border border-dashed border-white/10 bg-[#050505] rounded-xl shadow-inner">
+                  No elements yet. Click a button above to add one.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-setup" class="hidden max-w-3xl mx-auto space-y-6">
+            <div class="bg-kymor-panel border border-kymor-border rounded-xl p-6">
+              <h3 class="font-bold text-lg text-white mb-2">Hub Loader Script</h3>
+              <p class="text-sm text-gray-400 mb-6">Give this snippet to your users. It handles key auth and connects them to your hub. Paste it at the top of your main script.</p>
+              <div class="bg-[#132c2a] border border-[#1b433f] text-[#5eead4] p-4 rounded-lg flex items-start gap-3 mb-6 text-sm">
+                <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                <p>Use the <strong>"Loader"</strong> button next to a script in the Scripts tab to copy a per-script loader.</p>
+              </div>
+              <div class="bg-[#0a0a0b] border border-kymor-border p-4 rounded-lg flex justify-between items-center gap-4">
+                <code class="text-gray-400 font-mono text-sm break-all">-- Press "Loader" on a script in the Scripts tab!</code>
+                <button class="bg-[#1f1f22] text-gray-400 px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 hover:text-white transition shrink-0"><i data-lucide="copy" class="w-3 h-3"></i> COPY</button>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8 flex flex-col items-center text-center relative overflow-hidden shadow-xl">
+              <div id="overlay-setup-discord" class="absolute inset-0 bg-[#0a0a0b]/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-center p-6 hidden">
+                <div class="mb-4 bg-[#5865F2]/10 p-3 rounded-full border border-[#5865F2]/20">
+                  <i data-lucide="bot" class="w-6 h-6 text-[#5865F2]"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Discord Webhook</h3>
+                <p class="text-sm text-gray-400 mb-6 max-w-sm">
+                  Get notified when keys are authenticated.<br />Available on Premium.
+                </p>
+                <a href="/upgrade" class="bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold px-6 py-2.5 rounded-lg transition shadow-[0_0_15px_rgba(20,184,166,0.2)]">Upgrade to Premium</a>
+              </div>
+              <div class="mb-4">
+                <i data-lucide="bot" class="w-10 h-10 text-[#5865F2]"></i>
+              </div>
+              <h3 class="font-bold text-lg text-white mb-2">Discord Webhook</h3>
+              <p class="text-sm text-gray-400 mb-6 max-w-md">
+                Get notified when keys are authenticated. Link your Discord channel directly to this Hub.
+              </p>
+              <div class="flex flex-col w-full max-w-md gap-3">
+                <input type="text" id="setupWebhookUrl" class="w-full bg-[#050505] border border-white/10 p-3.5 rounded-lg text-sm text-white outline-none focus:border-[#5865F2] transition text-center shadow-inner" placeholder="https://discord.com/api/webhooks/..." />
+                <button onclick="saveWebhook()" class="bg-[#5865F2] text-white font-bold px-6 py-3 rounded-lg text-sm hover:bg-[#4752C4] transition w-full shadow-[0_0_15px_rgba(88,101,242,0.2)]">
+                  Save Webhook
+                </button>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 shadow-xl">
+              <label class="text-[10px] text-gray-500 font-bold mb-2 block tracking-widest uppercase">Rename Hub</label>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="settingHubName" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] shadow-inner" />
+                <button onclick="renameHub()" class="bg-[#14b8a6] text-black font-bold px-6 py-3 rounded-lg text-sm hover:bg-[#0d9488] transition w-full sm:w-auto shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-transparent border border-red-500/20 rounded-xl p-6 relative overflow-hidden">
+              <div class="absolute inset-0 bg-red-500/5 backdrop-blur-sm z-0 pointer-events-none"></div>
+              <h3 class="text-red-500 font-bold mb-6 text-sm uppercase tracking-widest relative z-10">
+                <i data-lucide="alert-triangle" class="w-4 h-4 inline"></i> Danger Zone
+              </h3>
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+                <div>
+                  <p class="font-bold text-white">Delete Hub</p>
+                  <p class="text-xs text-gray-500 mt-1">Permanently remove this Hub, all its Scripts, and all Keys.</p>
+                </div>
+                <button onclick="deleteHub()" class="bg-red-500/10 border border-red-500/30 text-red-500 font-bold px-6 py-3 rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition w-full sm:w-auto shrink-0 shadow-lg">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Hub
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-analytics" class="hidden max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 p-6 rounded-xl shadow-xl relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#14b8a6]/10 rounded-full blur-2xl pointer-events-none"></div>
+                <p class="text-[10px] text-gray-500 font-bold mb-3 uppercase tracking-widest">Active Sessions</p>
+                <h3 id="stat-active-sessions" class="text-3xl font-bold text-[#14b8a6]">0</h3>
+              </div>
+              <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 p-6 rounded-xl shadow-xl">
+                <p class="text-[10px] text-gray-500 font-bold mb-3 uppercase tracking-widest">Total Executions</p>
+                <h3 id="stat-execs" class="text-3xl font-bold text-white">0</h3>
+              </div>
+              <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 p-6 rounded-xl shadow-xl">
+                <p class="text-[10px] text-gray-500 font-bold mb-3 uppercase tracking-widest">Top Executor</p>
+                <h3 id="stat-top-executor" class="text-2xl font-bold text-gray-300">--</h3>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div class="hover-panel lg:col-span-2 bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 p-6 rounded-xl flex flex-col shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-sm text-white">Executions Over Time</h3>
+                  <div class="flex bg-[#050505] border border-white/5 rounded-md overflow-hidden text-[11px] font-bold text-gray-500 shadow-inner p-1 gap-1">
+                    <button id="btn-chart-1" onclick="renderChart(1)" class="px-3 py-1.5 bg-[#14b8a6]/10 border border-[#14b8a6]/20 rounded text-[#14b8a6] shadow-inner">24h</button>
+                    <button id="btn-chart-7" onclick="renderChart(7)" class="px-3 py-1.5 rounded hover:text-white transition">7d</button>
+                    <button id="btn-chart-30" onclick="renderChart(30)" class="px-3 py-1.5 rounded hover:text-white transition">30d</button>
+                  </div>
+                </div>
+                <div class="relative w-full h-[250px]">
+                  <canvas id="analyticsChart" class="absolute inset-0"></canvas>
+                </div>
+              </div>
+              <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 p-6 rounded-xl flex flex-col h-[350px] shadow-xl">
+                <h3 class="font-bold text-sm text-white mb-6 shrink-0">Executor Breakdown</h3>
+                <div id="stat-top-scripts" class="space-y-3 text-sm flex-1 overflow-y-auto pr-2 custom-scrollbar"></div>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl p-6 md:p-10 overflow-hidden relative rounded-xl mb-6 border border-white/5 shadow-xl">
+              <div class="absolute left-1/4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-600/10 blur-[80px] pointer-events-none"></div>
+              <h3 class="font-bold text-sm text-white mb-8">Geographic Breakdown</h3>
+              <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                <div id="globe-wrapper" class="relative w-full max-w-[400px] aspect-square">
+                  <canvas id="geoGlobe" style="width: 100%; height: 100%; cursor: grab; touch-action: none;" width="1600" height="1600"></canvas>
+                </div>
+                <div class="w-full md:w-1/2 text-right">
+                  <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Top Countries</p>
+                  <div id="geo-stats-container" class="space-y-3 text-sm text-gray-400">
+                    <p class="italic text-gray-600">Loading data...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hover-panel bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/5 rounded-xl overflow-hidden mb-10 shadow-xl">
+              <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                <div>
+                  <h3 class="font-bold text-sm text-white">Active Sessions</h3>
+                  <p class="text-xs text-gray-500 mt-1">Live view of online users. Refreshes every 10s.</p>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-white/5 px-2 py-1 rounded border border-white/10">
+                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.8)]"></span>
+                  Auto-refresh
+                </div>
+              </div>
+              <div class="overflow-x-auto p-4">
+                <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                  <thead class="text-gray-500 border-b border-white/10 uppercase text-[10px] tracking-widest">
+                    <tr>
+                      <th class="pb-3 px-3">PLAYER</th>
+                      <th class="pb-3 px-3">EXECUTOR</th>
+                      <th class="pb-3 px-3">GAME</th>
+                      <th class="pb-3 px-3">UPTIME</th>
+                      <th class="pb-3 px-3 text-right">LAST PING</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-activity-container">
+                    <tr>
+                      <td colspan="5" class="py-6 text-center text-gray-500">No active sessions.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+
+    <div id="hubModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('hubModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-sm relative z-10 shadow-2xl">
+        <h2 class="text-xl font-bold mb-2 text-white">Deploy New Hub</h2>
+        <p class="text-sm text-gray-400 mb-6">Initialize a new environment for your scripts and users.</p>
+        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">HUB NAME</label>
+        <input id="newHubName" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-6 outline-none focus:border-[#14b8a6] text-white text-sm shadow-inner" placeholder="e.g. My Awesome Hub" />
+        <div class="flex justify-end gap-3">
+          <button onclick="toggleModal('hubModal')" class="text-sm text-gray-400 hover:text-white px-3 py-2 transition border border-transparent hover:border-white/10 rounded-lg">Cancel</button>
+          <button onclick="createHub()" class="bg-[#14b8a6] text-black font-bold px-5 py-2.5 rounded-lg hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.3)]">Create Hub</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="accountSettingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('accountSettingsModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 md:p-8 rounded-xl w-full max-w-md relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl font-bold text-white">Account Settings</h2>
+          <button onclick="toggleModal('accountSettingsModal')" class="text-gray-400 hover:text-white transition p-1 bg-[#121214] border border-white/10 rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="space-y-5 mb-8">
+          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Profile Information</h3>
+
+          <div class="space-y-2 mt-6 border-t border-white/5 pt-6">
+            <label class="text-xs text-gray-400 font-bold uppercase tracking-wider">My Gift Keys (Reseller)</label>
+            <button onclick="window.viewGiftKeys()" class="w-full bg-[#121214] border border-white/10 text-[#14b8a6] px-4 py-3 rounded-xl text-sm font-bold hover:bg-[#14b8a6]/10 transition flex items-center justify-center gap-2 shadow-inner">
+              <i data-lucide="gift" class="w-4 h-4"></i> View Purchased Gift Keys
+            </button>
+            <div id="giftKeysContainer" class="hidden mt-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar bg-[#050505] p-3 rounded-xl border border-white/5 shadow-inner"></div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs text-gray-400 font-medium">Email Address</label>
+            <input type="email" id="settingsEmail" disabled class="w-full bg-[#050505] border border-white/5 p-3.5 rounded-lg text-sm text-gray-600 cursor-not-allowed shadow-inner" />
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs text-gray-400 font-medium">Username</label>
+            <div class="flex gap-3">
+              <input type="text" id="settingsUsername" class="w-full bg-[#050505] border border-white/10 p-3.5 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" />
+              <button onclick="window.updateUsername()" class="bg-[#121214] border border-white/10 text-white px-5 rounded-lg text-sm font-bold hover:border-[#14b8a6] hover:text-[#14b8a6] transition shrink-0">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-5 mb-8">
+          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Security</h3>
+
+          <div class="space-y-2">
+            <label class="text-xs text-gray-400 font-medium">Change Password</label>
+            <div class="flex flex-col gap-3">
+              <input type="password" id="settingsNewPassword" placeholder="Enter new password..." class="w-full bg-[#050505] border border-white/10 p-3.5 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] transition shadow-inner" />
+              <button onclick="window.updatePassword()" class="w-full bg-[#121214] border border-white/10 text-white py-3 rounded-lg text-sm font-bold hover:border-[#14b8a6] transition">Update Password</button>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <label class="flex items-center justify-between p-5 bg-[#050505] border border-white/10 rounded-xl cursor-pointer hover:border-white/20 transition shadow-inner">
+              <div>
+                <p class="font-bold text-sm text-white">Two-Factor Auth</p>
+                <p class="text-xs text-gray-500 mt-1">Require email OTP on login.</p>
+              </div>
+              <input type="checkbox" id="toggle2FA" onchange="window.update2FA(this.checked)" class="w-5 h-5 accent-[#14b8a6] rounded bg-[#121214] border-white/10" />
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Session Actions</h3>
+          <button onclick="window.logout()" class="w-full bg-red-500/10 border border-red-500/30 text-red-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition shadow-sm">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out of Kymor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="hubLimitModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('hubLimitModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-sm relative z-10 flex flex-col items-center text-center shadow-2xl">
+        <div class="w-12 h-12 rounded-full bg-[#14b8a6]/10 border border-[#14b8a6]/20 flex items-center justify-center mb-4">
+          <i data-lucide="layers" class="w-6 h-6 text-[#14b8a6]"></i>
+        </div>
+        <h2 class="text-xl font-bold mb-2 text-white">Hub Limit Reached</h2>
+        <p class="text-sm text-gray-400 mb-6">Free accounts are limited to 1 Hub. Upgrade to Premium for up to 50 Hubs.</p>
+        <div class="flex justify-center gap-3 w-full">
+          <button onclick="toggleModal('hubLimitModal')" class="text-sm text-white bg-[#121214] border border-white/10 px-5 py-2.5 rounded-lg hover:bg-white/10 transition font-bold">Close</button>
+          <a href="/upgrade" class="bg-[#14b8a6] text-black font-bold px-5 py-2.5 rounded-lg hover:bg-[#0d9488] transition flex items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+            <i data-lucide="star" class="w-4 h-4 text-black fill-black"></i> Upgrade to Premium
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="scriptModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('scriptModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-2xl relative z-10 shadow-2xl">
+        <h2 class="text-xl font-bold mb-2 text-white" id="scriptModalTitle">Store Script</h2>
+        <p class="text-sm text-gray-400 mb-6">Save a Lua script to your Hub. The loader will serve it after key auth.</p>
+        <input type="hidden" id="editScriptId" />
+        <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">SCRIPT NAME</label>
+        <input id="newScriptName" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-4 text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="e.g. Auto Farm" />
+
+        <div class="flex justify-between items-end mb-2 mt-4">
+          <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase block">LUA CODE</label>
+          <button onclick="document.getElementById('scriptFileInput').click()" class="text-[10px] font-bold bg-[#121214] border border-white/10 text-gray-400 hover:text-[#14b8a6] hover:border-[#14b8a6]/30 px-3 py-1.5 rounded transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="upload" class="w-3 h-3"></i> Upload .lua
+          </button>
+          <input type="file" id="scriptFileInput" accept=".lua,.txt" class="hidden" onchange="window.handleScriptFileUpload(event)">
+        </div>
+        <textarea id="newScriptCode" rows="6" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-6 font-mono text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="print('Loaded!')"></textarea>
+
+        <label class="text-[10px] text-gray-500 font-bold mb-2 block tracking-widest uppercase">OBFUSCATOR</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+          
+          <label class="relative cursor-pointer flex items-center p-3 h-full group">
+            <input type="radio" name="obfuscator" value="none" checked class="peer sr-only" />
+            <div class="absolute inset-0 border border-white/10 group-hover:border-white/20 bg-[#050505] rounded-lg transition shadow-inner peer-checked:border-[#14b8a6] peer-checked:bg-[#14b8a6]/5 pointer-events-none"></div>
+            <div class="relative z-10 w-4 h-4 rounded-full border-2 border-gray-600 peer-checked:border-[#14b8a6] text-transparent peer-checked:text-[#14b8a6] flex items-center justify-center shrink-0 mr-3 transition-colors">
+                <div class="w-2 h-2 rounded-full bg-current transition-colors"></div>
+            </div>
+            <div class="relative z-10">
+                <p class="font-bold text-sm text-white leading-tight">None</p>
+                <p class="text-[10px] text-gray-500 leading-tight mt-0.5">Serve original source</p>
+            </div>
+          </label>
+
+          <label class="relative cursor-pointer flex items-center p-3 h-full group">
+            <input type="radio" name="obfuscator" value="luacon" class="peer sr-only" />
+            <div class="absolute inset-0 border border-white/10 group-hover:border-white/20 bg-[#050505] rounded-lg transition shadow-inner peer-checked:border-[#14b8a6] peer-checked:bg-[#14b8a6]/5 pointer-events-none"></div>
+            <div class="relative z-10 w-4 h-4 rounded-full border-2 border-gray-600 peer-checked:border-[#14b8a6] text-transparent peer-checked:text-[#14b8a6] flex items-center justify-center shrink-0 mr-3 transition-colors">
+                <div class="w-2 h-2 rounded-full bg-current transition-colors"></div>
+            </div>
+            <div class="relative z-10">
+                <p class="font-bold text-sm text-white leading-tight">LuaCon</p>
+                <p class="text-[10px] text-gray-500 leading-tight mt-0.5">Obfuscate on save</p>
+            </div>
+          </label>
+
+          <label class="relative cursor-not-allowed opacity-50 flex items-center p-3 h-full">
+            <input type="radio" name="obfuscator" value="vexloe" disabled class="peer sr-only" />
+            <div class="absolute inset-0 border border-white/10 bg-[#050505] rounded-lg transition shadow-inner pointer-events-none"></div>
+            <div class="relative z-10 w-4 h-4 rounded-full border-2 border-gray-600 text-transparent flex items-center justify-center shrink-0 mr-3">
+                <div class="w-2 h-2 rounded-full bg-current"></div>
+            </div>
+            <div class="relative z-10">
+                <p class="font-bold text-sm text-white leading-tight">Vexloe</p>
+                <p class="text-[10px] text-gray-500 leading-tight mt-0.5">Coming soon</p>
+            </div>
+          </label>
+        </div>
+        <p class="text-[11px] text-gray-500 mb-6 flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-[#14b8a6]"></i>
+          <span class="text-white">LuaCon:</span>
+          <span class="text-white font-bold" id="luacon-limit-text">3/3</span>
+          obfuscations remaining today
+        </p>
+        <div class="flex justify-end gap-3">
+          <button onclick="toggleModal('scriptModal')" class="text-sm text-gray-400 hover:text-white px-4 py-2 transition border border-transparent hover:border-white/10 rounded-lg">Cancel</button>
+          <button onclick="saveScript()" class="bg-[#14b8a6] text-black font-bold px-6 py-2.5 rounded-lg hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.3)]">Save Script</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="generateKeysModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('generateKeysModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <h2 class="text-xl font-bold mb-2 text-white">Generate Keys</h2>
+        <p class="text-sm text-gray-400 mb-6">Create one or multiple license keys for your hub.</p>
+        <div id="freePlanKeyBanner" class="bg-[#14b8a6]/10 border border-[#14b8a6]/20 p-3 rounded-lg mb-6 flex items-start gap-3 shadow-inner">
+          <i data-lucide="tag" class="w-4 h-4 text-[#14b8a6] shrink-0 mt-0.5"></i>
+          <p class="text-xs text-gray-300">
+            <span class="font-bold text-[#14b8a6]">Free Plan:</span> All keys are prefixed with
+            <code class="bg-[#050505] px-1 rounded border border-white/10 text-[#14b8a6]">KYMOR-</code>
+            <a href="/upgrade" class="text-[#14b8a6] hover:underline ml-1">Upgrade</a> to remove branding.
+          </p>
+        </div>
+        <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">CUSTOM KEY (OPTIONAL)</label>
+        <input type="text" id="genKeyCustom" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-4 text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner font-mono" placeholder="Leave blank to auto-generate" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">AMOUNT</label>
+            <input type="number" id="genKeyAmount" value="1" min="1" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="1" />
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">DURATION</label>
+            <div class="flex gap-2">
+                <input type="number" id="genKeyDurationVal" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="0 = Lifetime" min="0" />
+                <select id="genKeyDurationUnit" class="bg-[#050505] border border-white/10 p-3 rounded-lg text-sm outline-none focus:border-[#14b8a6] text-white appearance-none shadow-inner shrink-0 w-20 sm:w-24">
+                    <option value="3600">Hours</option>
+                    <option value="86400">Days</option>
+                    <option value="604800">Weeks</option>
+                </select>
+            </div>
+          </div>
+        </div>
+        <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">BIND TO SCRIPT (OPTIONAL)</label>
+        <select id="genKeyBind" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-4 text-sm outline-none focus:border-[#14b8a6] text-white appearance-none shadow-inner">
+          <option value="">All Scripts</option>
+        </select>
+        <label class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2 block">NOTE / BATCH NAME</label>
+        <input type="text" id="genKeyNote" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-6 text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="e.g. Premium Access" />
+        <label class="flex items-center p-3 border border-white/10 bg-[#050505] rounded-lg cursor-pointer hover:border-white/20 transition mb-6 shadow-inner">
+          <input type="checkbox" id="genKeyNonHwid" class="mr-4 w-5 h-5 accent-[#14b8a6] rounded bg-[#121214] border-white/10" />
+          <div>
+            <p class="font-bold text-sm text-white leading-tight">Non-HWID Key</p>
+            <p class="text-[10px] text-gray-500 leading-tight mt-0.5">Key will not lock to hardware — sharable.</p>
+          </div>
+        </label>
+        <div class="flex justify-end gap-3">
+          <button onclick="toggleModal('generateKeysModal')" class="text-sm text-gray-400 border border-transparent hover:border-white/10 hover:text-white px-4 py-2.5 rounded-lg transition">Cancel</button>
+          <button onclick="executeGenerateKeys()" class="bg-[#14b8a6] text-black font-bold px-6 py-2.5 rounded-lg hover:bg-[#0d9488] transition flex items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+            <i data-lucide="zap" class="w-4 h-4 text-black fill-black"></i> Generate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bulkKeysModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('bulkKeysModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 sm:p-8 rounded-xl w-full max-w-xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="flex justify-between items-center mb-6 sm:mb-8">
+          <h2 class="text-xl font-bold text-white">Bulk Key Actions</h2>
+          <button onclick="toggleModal('bulkKeysModal')" class="text-gray-400 hover:text-white transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div class="mb-8">
+          <h3 class="font-bold text-sm text-white mb-1">Mass Generate</h3>
+          <p class="text-xs text-gray-500 mb-3">Generate up to 250 keys at once.</p>
+          <div class="flex flex-col sm:flex-row gap-3 mb-3 w-full">
+            <input type="number" id="bulkAmount" value="1" min="1" max="250" class="w-full sm:w-24 bg-[#050505] border border-white/10 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] shadow-inner shrink-0" placeholder="Qty" />
+            <div class="flex gap-2 w-full sm:flex-1">
+                <input type="number" id="bulkDurationVal" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg text-sm outline-none focus:border-[#14b8a6] text-white shadow-inner" placeholder="0 = Lifetime" min="0" />
+                <select id="bulkDurationUnit" class="bg-[#050505] border border-white/10 p-3 rounded-lg text-sm outline-none focus:border-[#14b8a6] text-white appearance-none shadow-inner shrink-0 w-20 sm:w-24">
+                    <option value="3600">Hours</option>
+                    <option value="86400">Days</option>
+                    <option value="604800">Weeks</option>
+                </select>
+            </div>
+            <button onclick="executeBulkGenerate()" class="w-full sm:w-auto bg-[#14b8a6] text-black font-bold px-5 py-3 sm:py-0 rounded-lg text-sm hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0">Generate</button>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <select id="bulkBind" class="w-full sm:flex-1 bg-[#050505] border border-white/10 p-3 rounded-lg text-sm text-white outline-none focus:border-[#14b8a6] appearance-none shadow-inner">
+              <option value="">All Scripts</option>
+            </select>
+            <label class="flex items-center text-sm cursor-pointer whitespace-nowrap text-white py-2 sm:py-0">
+              <input type="checkbox" id="bulkNonHwid" class="mr-2 w-4 h-4 accent-[#14b8a6] rounded border-white/10" /> Non-HWID
+            </label>
+          </div>
+        </div>
+        <hr class="border-white/5 mb-8" />
+        <div class="mb-8">
+          <h3 class="font-bold text-sm text-white mb-1">Export Keys</h3>
+          <p class="text-xs text-gray-500 mb-3">Download as TXT (for Sellix) or JSON (for migrating).</p>
+          <div class="flex flex-col sm:flex-row justify-between gap-3">
+            <div class="flex gap-3 w-full sm:w-auto">
+              <button onclick="exportKeys('txt')" class="flex-1 sm:flex-none bg-[#121214] border border-[#14b8a6]/30 text-[#14b8a6] px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#14b8a6]/10 transition shadow-sm">
+                <i data-lucide="download" class="w-4 h-4"></i> TXT
+              </button>
+              <button onclick="exportKeys('json')" class="flex-1 sm:flex-none bg-[#121214] border border-[#14b8a6]/30 text-[#14b8a6] px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#14b8a6]/10 transition shadow-sm">
+                <i data-lucide="download" class="w-4 h-4"></i> JSON
+              </button>
+            </div>
+            <button onclick="deleteUnusedKeys()" class="w-full sm:w-auto bg-[#121214] border border-red-500/30 text-red-500 px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-500/10 transition shadow-sm shrink-0">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Unused
+            </button>
+          </div>
+        </div>
+        <hr class="border-white/5 mb-8" />
+        <div>
+          <h3 class="font-bold text-sm text-white mb-1">Import Users</h3>
+          <p class="text-xs text-gray-500 mb-3">Import from a previously exported JSON file.</p>
+          <button onclick="importKeys(event)" class="w-full bg-[#050505] border border-[#14b8a6]/30 text-[#14b8a6] font-bold py-3.5 rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-[#1a1a1c] transition uppercase tracking-widest shadow-inner">
+            <i data-lucide="upload" class="w-4 h-4"></i> SELECT EXPORTED JSON
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="checkpointModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div class="absolute inset-0" onclick="toggleModal('checkpointModal')"></div>
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-lg relative z-10 shadow-2xl">
+        <h2 class="text-xl font-bold mb-6 text-white" id="cpModalTitle">Add Checkpoint</h2>
+        <input type="hidden" id="cpEditIndex" value="-1" />
+
+        <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">Provider</label>
+        <select id="cpProvider" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-4 text-sm text-white outline-none focus:border-[#14b8a6] shadow-inner appearance-none cursor-pointer">
+          <option value="Linkvertise">Linkvertise</option>
+          <option value="Lootlabs">Lootlabs</option>
+          <option value="Work.Ink">Work.Ink</option>
+          <option value="ShrtFly">ShrtFly / ShrinkEarn</option>
+        </select>
+
+        <div class="flex justify-between items-end mb-2">
+          <label class="text-[10px] text-gray-500 font-bold block uppercase tracking-widest">Short URL</label>
+          <span class="text-[9px] text-[#14b8a6] font-bold">Leave blank to get Target URL first</span>
+        </div>
+        <input type="text" id="cpUrl" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-4 text-sm text-white outline-none focus:border-[#14b8a6] shadow-inner" placeholder="https://link-to.net/..." />
+
+        <label class="text-[10px] text-gray-500 font-bold mb-2 block uppercase tracking-widest">API Key / Token (Optional)</label>
+        <input type="text" id="cpToken" class="w-full bg-[#050505] border border-white/10 p-3 rounded-lg mb-6 text-sm text-white outline-none focus:border-[#14b8a6] shadow-inner" placeholder="Enables Encryptor/Anti-Bypass" />
+
+        <div class="flex justify-end gap-3">
+          <button onclick="toggleModal('checkpointModal')" class="text-sm text-gray-400 hover:text-white px-4 py-2.5 transition border border-transparent hover:border-white/10 rounded-lg">Cancel</button>
+          <button onclick="saveCheckpoint()" class="bg-[#14b8a6] text-black font-bold px-6 py-2.5 rounded-lg hover:bg-[#0d9488] transition shadow-[0_0_15px_rgba(20,184,166,0.3)]">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="customConfirmModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[150] p-4 transition-opacity opacity-0">
+      <div class="bg-[#0a0a0b] border border-white/10 p-6 rounded-xl w-full max-w-sm relative z-10 transform scale-95 transition-transform duration-200 shadow-2xl">
+        <div id="confirmIconContainer" class="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+          <i id="confirmIcon" data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+        </div>
+        <h2 id="confirmTitle" class="text-xl font-bold mb-2 text-white">Are you sure?</h2>
+        <p id="confirmMessage" class="text-sm text-gray-400 mb-6">This action cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+          <button id="confirmCancelBtn" class="text-sm text-gray-400 hover:text-white px-4 py-2 transition border border-transparent hover:border-white/10 rounded-lg">Cancel</button>
+          <button id="confirmActionBtn" class="bg-red-500 text-white font-bold px-5 py-2.5 rounded-lg transition shadow-[0_0_15px_rgba(239,68,68,0.3)]">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.closeVerification = function () {
+        const overlay = document.getElementById("paymentVerificationOverlay");
+        if (overlay) {
+          overlay.classList.add("opacity-0");
+          setTimeout(() => overlay.classList.add("hidden"), 500);
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const upgradeStatus = urlParams.get("upgrade");
+        const giftStatus = urlParams.get("gift");
+
+        if (giftStatus === "success") {
+          const checkoutActive = localStorage.getItem("checkout_active");
+          if (!checkoutActive) {
+            window.location.replace("/dashboard");
+            return;
+          }
+          localStorage.removeItem("checkout_active");
+          window.history.replaceState({}, document.title, "/dashboard");
+
+          window.showToast("Gift Key Generated! Please check your email.", "success");
+        } else if (upgradeStatus === "success") {
+          const checkoutActive = localStorage.getItem("checkout_active");
+
+          if (!checkoutActive) {
+            window.location.replace("/dashboard");
+            return;
+          }
+
+          localStorage.removeItem("checkout_active");
+
+          const overlay = document.getElementById("paymentVerificationOverlay");
+          if (overlay) overlay.classList.remove("hidden");
+
+          const statusIcon = document.getElementById("verifyIcon");
+          const statusTitle = document.getElementById("verifyTitle");
+          const statusDesc = document.getElementById("verifyDesc");
+          const closeBtn = document.getElementById("verifyCloseBtn");
+
+          let attempts = 0;
+          const maxAttempts = 15;
+
+          const verifyInterval = setInterval(async () => {
+            attempts++;
+            try {
+              const res = await fetch("/api/user/me");
+              const data = await res.json();
+
+              if (data.isPremium) {
+                clearInterval(verifyInterval);
+
+                if (statusIcon) {
+                  statusIcon.innerHTML = `<i data-lucide="check-circle" class="w-12 h-12 text-green-500"></i>`;
+                  statusIcon.className = "w-28 h-28 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(34,197,94,0.3)] transform scale-110 transition-transform duration-500";
+                }
+                if (statusTitle) {
+                  statusTitle.innerText = "Payment Verified!";
+                  statusTitle.className = "text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 mb-4 tracking-tight";
+                }
+                if (statusDesc) {
+                  statusDesc.innerText = "Welcome to Kymor Premium. Your account has been permanently upgraded.";
+                }
+
+                if (typeof lucide !== "undefined") lucide.createIcons();
+
+                setTimeout(() => {
+                  closeVerification();
+                  setTimeout(() => window.location.replace("/dashboard"), 500);
+                }, 3000);
+              } else if (attempts >= maxAttempts) {
+                clearInterval(verifyInterval);
+
+                if (statusIcon) {
+                  statusIcon.innerHTML = `<i data-lucide="clock" class="w-12 h-12 text-yellow-500"></i>`;
+                  statusIcon.className = "w-28 h-28 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(234,179,8,0.3)]";
+                }
+                if (statusTitle) {
+                  statusTitle.innerText = "Still Processing";
+                  statusTitle.className = "text-4xl font-black text-yellow-500 mb-4 tracking-tight";
+                }
+                if (statusDesc) {
+                  statusDesc.innerText = "Your gateway is taking a bit longer to confirm. Your account will automatically upgrade once the webhook is successfully received.";
+                }
+                if (closeBtn) {
+                  closeBtn.classList.remove("hidden");
+                  closeBtn.onclick = () => window.location.replace("/dashboard");
+                }
+
+                if (typeof lucide !== "undefined") lucide.createIcons();
+              }
+            } catch (e) {}
+          }, 2000);
+        }
+      });
+    </script>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>

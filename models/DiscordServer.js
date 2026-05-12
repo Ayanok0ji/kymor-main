@@ -1,0 +1,2 @@
+import mongoose from 'mongoose';
+export default mongoose.model('DiscordServer', new mongoose.Schema({ guild_id: { type: String, required: true, unique: true }, api_key: { type: String, required: true }, active_hub_id: { type: String, default: null }, manager_role_id: { type: String, default: null }, buyer_role_id: { type: String, default: null } }));

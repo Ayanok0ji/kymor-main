@@ -1,0 +1,374 @@
+// Kymor SaaS Key System — Prisma Schema (MySQL)
+// Inspired by Panda Key System + Luarmor architecture
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum KeyStatus {
+  ACTIVE
+  BANNED
+  EXPIRED
+}
+
+enum CheckpointProvider {
+  LINKVERTISE
+  LOOTLABS
+  WORK_INK
+  SHRTFLY
+}
+
+// ─── Users ─────────────────────────────────────────────
+
+model User {
+  id                    String    @id @default(cuid())
+  username              String    @unique
+  email                 String    @unique
+  password              String
+  apiKey                String    @unique @default(cuid()) @map("api_key")
+  isPremium             Boolean   @default(false) @map("is_premium")
+  role                  Role      @default(USER)
+  isVerified            Boolean   @default(false) @map("is_verified")
+  acceptedTOS           Boolean   @default(false) @map("accepted_tos")
+  isTwoFactorEnabled    Boolean   @default(false) @map("is_two_factor_enabled")
+  twoFactorOtp          String?   @map("two_factor_otp")
+  twoFactorOtpExpire    DateTime? @map("two_factor_otp_expire")
+  verificationOtp       String?   @map("verification_otp")
+  verificationOtpExpire DateTime? @map("verification_otp_expire")
+  resetOtp              String?   @map("reset_otp")
+  resetOtpExpire        DateTime? @map("reset_otp_expire")
+  obfuscationsToday     Int       @default(0) @map("obfuscations_today")
+  lastObfuscationDate   DateTime? @map("last_obfuscation_date")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  hubs        Hub[]
+  premiumKeys PremiumKey[] @relation("PurchasedBy")
+  usedKeys    PremiumKey[] @relation("UsedBy")
+
+  @@map("users")
+}
+
+// ─── Hubs (Projects) ───────────────────────────────────
+
+model Hub {
+  id         String  @id @default(cuid())
+  ownerId    String  @map("owner_id")
+  name       String
+  shortId    String  @unique @map("short_id") @db.VarChar(16)
+  apiKey     String  @unique @map("api_key") @db.VarChar(64)
+  webhookUrl String  @default("") @map("webhook_url") @db.VarChar(512)
+  paused     Boolean @default(false)
+
+  // Stats (denormalized for performance)
+  statsOnline     Int @default(0) @map("stats_online")
+  statsExecutions Int @default(0) @map("stats_executions")
+  statsScripts    Int @default(0) @map("stats_scripts")
+  statsKeys       Int @default(0) @map("stats_keys")
+
+  // Rewards Config
+  rewardsEnabled           Boolean @default(false) @map("rewards_enabled")
+  rewardsMaxKeys           Int     @default(2) @map("rewards_max_keys")
+  rewardsEnableFreeKeys    Boolean @default(false) @map("rewards_enable_free_keys")
+  rewardsKeyDurationSecs   Int     @default(0) @map("rewards_key_duration_secs")
+  rewardsAddTimeSecs       Int     @default(21600) @map("rewards_add_time_secs")
+  rewardsMaxTimeSecs       Int     @default(86400) @map("rewards_max_time_secs")
+  rewardsCooldownSecs      Int     @default(0) @map("rewards_cooldown_secs")
+  rewardsCheckpointTimeout Int     @default(70) @map("rewards_checkpoint_timeout")
+  rewardsAllowBrowserReset Boolean @default(true) @map("rewards_allow_browser_reset")
+  rewardsRequireDiscord    Boolean @default(false) @map("rewards_require_discord")
+
+  // Page Builder Config (stored as JSON)
+  pagePublished  Boolean @default(false) @map("page_published")
+  pageTitle      String  @default("Untitled Hub") @map("page_title")
+  pageSlug       String  @default("") @map("page_slug") @db.VarChar(128)
+  pageKeyMode    String  @default("free") @map("page_key_mode") @db.VarChar(16)
+  pageBuyLink    String  @default("") @map("page_buy_link") @db.VarChar(512)
+  pageAccentColor String @default("#14b8a6") @map("page_accent_color") @db.VarChar(16)
+  pageDescription String @default("") @map("page_description") @db.Text
+  pageElements   Json?   @map("page_elements")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner          User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  keys           Key[]
+  scripts        Script[]
+  executionLogs  ExecutionLog[]
+  playerSessions PlayerSession[]
+  rewardSessions RewardSession[]
+  checkpoints    Checkpoint[]
+  blacklists     Blacklist[]
+  discordServers DiscordServer[]
+
+  @@index([ownerId])
+  @@map("hubs")
+}
+
+// ─── Checkpoints (Ad Steps) ────────────────────────────
+
+model Checkpoint {
+  id             String             @id @default(cuid())
+  hubId          String             @map("hub_id")
+  provider       CheckpointProvider
+  shortUrl       String             @map("short_url") @db.VarChar(512)
+  apiToken       String             @default("") @map("api_token") @db.VarChar(512)
+  completedCount Int                @default(0) @map("completed_count")
+  cancelledCount Int                @default(0) @map("cancelled_count")
+  sortOrder      Int                @default(0) @map("sort_order")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@map("checkpoints")
+}
+
+// ─── Keys ──────────────────────────────────────────────
+
+model Key {
+  id            String    @id @default(cuid())
+  hubId         String    @map("hub_id")
+  keyString     String    @unique @map("key_string") @db.VarChar(128)
+  hwid          String?   @db.VarChar(512)
+  executions    Int       @default(0)
+  status        KeyStatus @default(ACTIVE)
+  expiresAt     DateTime? @map("expires_at")
+  boundScriptId String?   @map("bound_script_id") @db.VarChar(32)
+  nonHwid       Boolean   @default(false) @map("non_hwid")
+  note          String    @default("") @db.VarChar(512)
+  discordId     String?   @map("discord_id") @db.VarChar(32)
+  isTrial       Boolean   @default(false) @map("is_trial")
+  lastHwidReset DateTime? @map("last_hwid_reset")
+  ipAddress     String?   @map("ip_address") @db.VarChar(64)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@index([keyString])
+  @@index([hubId, status])
+  @@map("keys")
+}
+
+// ─── Scripts ───────────────────────────────────────────
+
+model Script {
+  id         String   @id @default(cuid())
+  hubId      String   @map("hub_id")
+  scriptId   String   @unique @map("script_id") @db.VarChar(32)
+  name       String   @db.VarChar(256)
+  // Code is AES-256-GCM encrypted at rest
+  code       String   @db.MediumText
+  codeIv     String?  @map("code_iv") @db.VarChar(64)
+  codeTag    String?  @map("code_tag") @db.VarChar(64)
+  obfuscator String   @default("none") @db.VarChar(16)
+  executions Int      @default(0)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@map("scripts")
+}
+
+// ─── Sessions (one-time script fetch tokens) ───────────
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique @db.VarChar(128)
+  scriptId  String   @map("script_id") @db.VarChar(32)
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+
+  @@index([token])
+  @@map("sessions")
+}
+
+// ─── Execution Logs ────────────────────────────────────
+
+model ExecutionLog {
+  id         String   @id @default(cuid())
+  hubId      String   @map("hub_id")
+  scriptId   String   @map("script_id") @db.VarChar(32)
+  scriptName String   @default("Unknown") @map("script_name") @db.VarChar(256)
+  keyString  String   @map("key_string") @db.VarChar(128)
+  executor   String   @default("Unknown") @db.VarChar(128)
+  hwid       String   @default("Unknown") @db.VarChar(512)
+  country    String   @default("Unknown") @db.VarChar(64)
+  lat        Float    @default(0)
+  lon        Float    @default(0)
+  ipAddress  String?  @map("ip_address") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@index([createdAt])
+  @@map("execution_logs")
+}
+
+// ─── Player Sessions (live online tracking) ────────────
+
+model PlayerSession {
+  id          String   @id @default(cuid())
+  hubId       String   @map("hub_id")
+  hwid        String   @db.VarChar(512)
+  discordId   String?  @map("discord_id") @db.VarChar(32)
+  playerName  String   @default("Unknown") @map("player_name") @db.VarChar(128)
+  executor    String   @default("Unknown") @db.VarChar(128)
+  gameName    String   @default("Unknown Game") @map("game_name") @db.VarChar(256)
+  ipAddress   String   @map("ip_address") @db.VarChar(64)
+  startedAt   DateTime @default(now()) @map("started_at")
+  lastPing    DateTime @default(now()) @map("last_ping")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@index([lastPing])
+  @@index([hubId, hwid])
+  @@map("player_sessions")
+}
+
+// ─── Blacklist ─────────────────────────────────────────
+
+model Blacklist {
+  id        String   @id @default(cuid())
+  hubId     String?  @map("hub_id")
+  target    String   @db.VarChar(512)
+  reason    String   @default("Automated Security Ban") @db.VarChar(512)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  hub Hub? @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@index([target])
+  @@map("blacklists")
+}
+
+// ─── Reward Sessions ───────────────────────────────────
+
+model RewardSession {
+  id                  String    @id @default(cuid())
+  hubId               String    @map("hub_id")
+  sessionId           String    @unique @map("session_id") @db.VarChar(64)
+  ip                  String    @db.VarChar(64)
+  progress            Int       @default(0)
+  keyEarned           String?   @map("key_earned") @db.VarChar(128)
+  stepStartedAt       DateTime? @map("step_started_at")
+  actionToken         String?   @map("action_token") @db.VarChar(64)
+  usedHashes          Json?     @map("used_hashes")
+  stepTimes           Json?     @map("step_times")
+  cooldownUntil       DateTime? @map("cooldown_until")
+  discordId           String?   @map("discord_id") @db.VarChar(32)
+  discordUsername     String?   @map("discord_username") @db.VarChar(64)
+  riskScore           Int       @default(0) @map("risk_score")
+  requiresVerification Boolean @default(false) @map("requires_verification")
+  expiresAt           DateTime  @map("expires_at")
+  lastActive          DateTime  @default(now()) @map("last_active")
+
+  hub Hub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@index([hubId])
+  @@index([ip, hubId])
+  @@map("reward_sessions")
+}
+
+// ─── Discord Server Links ──────────────────────────────
+
+model DiscordServer {
+  id            String  @id @default(cuid())
+  guildId       String  @unique @map("guild_id") @db.VarChar(32)
+  apiKey        String  @map("api_key") @db.VarChar(64)
+  activeHubId   String? @map("active_hub_id") @db.VarChar(16)
+  managerRoleId String? @map("manager_role_id") @db.VarChar(32)
+  buyerRoleId   String? @map("buyer_role_id") @db.VarChar(32)
+
+  hub Hub? @relation(fields: [activeHubId], references: [shortId])
+
+  @@map("discord_servers")
+}
+
+// ─── Premium Keys ──────────────────────────────────────
+
+model PremiumKey {
+  id          String    @id @default(cuid())
+  keyString   String    @unique @map("key_string") @db.VarChar(128)
+  used        Boolean   @default(false)
+  usedById    String?   @map("used_by_id")
+  usedAt      DateTime? @map("used_at")
+  purchasedById String? @map("purchased_by_id")
+  note        String    @default("") @db.VarChar(512)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  usedBy      User? @relation("UsedBy", fields: [usedById], references: [id])
+  purchasedBy User? @relation("PurchasedBy", fields: [purchasedById], references: [id])
+
+  @@map("premium_keys")
+}
+
+// ─── Platform Config (singleton) ───────────────────────
+
+model PlatformConfig {
+  id                  String  @id @default(cuid())
+  discordClientId     String  @default("") @map("discord_client_id") @db.VarChar(64)
+  discordClientSecret String  @default("") @map("discord_client_secret") @db.VarChar(128)
+  paypalClientId      String  @default("") @map("paypal_client_id") @db.VarChar(128)
+  paypalClientSecret  String  @default("") @map("paypal_client_secret") @db.VarChar(128)
+  paymongoSecretKey   String  @default("") @map("paymongo_secret_key") @db.VarChar(128)
+  maintenanceMode     Boolean @default(false) @map("maintenance_mode")
+  authorizedIps       Json?   @map("authorized_ips")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_config")
+}
+
+// ─── Global Activity Logs ──────────────────────────────
+
+model GlobalActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  username  String   @default("System") @db.VarChar(64)
+  action    String   @db.VarChar(128)
+  details   String   @default("") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("global_activity_logs")
+}
+
+// ─── Security Events (from Panda honeypot) ─────────────
+
+model SecurityEvent {
+  id               String   @id @default(cuid())
+  ipAddress        String   @map("ip_address") @db.VarChar(64)
+  hwid             String?  @db.VarChar(512)
+  eventType        String   @map("event_type") @db.VarChar(64)
+  severity         String   @db.VarChar(16)
+  bypassScore      Float    @default(0) @map("bypass_score")
+  detectionType    String?  @map("detection_type") @db.VarChar(64)
+  flags            Json?
+  browserFingerprint Json?  @map("browser_fingerprint")
+  userAgent        String?  @map("user_agent") @db.Text
+  requestPath      String?  @map("request_path") @db.VarChar(512)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@map("security_events")
+}

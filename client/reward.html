@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Reward | Kymor</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#050505] text-gray-200 min-h-screen selection:bg-[#14b8a6] selection:text-black relative overflow-x-hidden" style="font-family: 'Inter', sans-serif;">
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="glass-overlay"></div>
+
+    <nav class="h-20 border-b border-white/5 bg-[#050505]/40 backdrop-blur-md flex items-center justify-between px-6 md:px-20 sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-[#1a1a1c] to-[#0a0a0b] border border-white/10 w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+                <img src="/assets/logo.svg" alt="Kymor Logo" class="w-full h-full object-contain p-1.5">
+            </div>
+            <div>
+                <h2 class="text-white font-bold text-lg leading-tight">Kymor</h2>
+                <p class="text-[#14b8a6] text-[9px] font-bold tracking-widest uppercase">Reward Gateway</p>
+            </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <i data-lucide="shield-check" class="w-4 h-4 text-[#14b8a6]"></i> Secure Access
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto py-12 px-4 md:px-0 relative z-10 min-h-[calc(100vh-80px)] flex flex-col justify-center">
+        
+        <div id="discord-auth-container" class="hidden glass-panel rounded-3xl p-10 md:p-20 text-center relative overflow-hidden mb-8 float-layer transition-all hover:-translate-y-1 hover:border-[#5865F2]/30">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-[#5865F2]"></div>
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#5865F2]/10 rounded-full blur-[80px] pointer-events-none"></div>
+            
+            <div class="w-24 h-24 bg-[#5865F2]/10 border border-[#5865F2]/20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(88,101,242,0.2)] rotate-3">
+                <i data-lucide="layout-grid" class="w-12 h-12 text-[#5865F2]"></i>
+            </div>
+            <h3 class="text-3xl font-black text-white mb-4 tracking-tight">Verification Required</h3>
+            <p class="text-gray-400 mb-10 max-w-md mx-auto leading-relaxed">To access this Hub's content, you must link your Discord account. This ensures a secure and protected environment.</p>
+            <button onclick="window.loginDiscord()" class="bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold py-4 px-12 rounded-xl inline-flex items-center gap-3 transition-all hover:scale-105 shadow-[0_10px_30px_rgba(88,101,242,0.3)]">
+                <i data-lucide="log-in" class="w-5 h-5"></i> Authorize with Discord
+            </button>
+        </div>
+
+        <div id="main-reward-content" class="space-y-8 hidden w-full my-auto">
+            
+            <div class="glass-panel rounded-3xl p-8 shadow-2xl relative overflow-hidden transition-all hover:border-[#14b8a6]/30 float-layer">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#14b8a6] to-emerald-400"></div>
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#14b8a6]/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+                    <div class="w-full md:w-auto text-center md:text-left">
+                        <h2 class="text-3xl font-black text-white mb-2 tracking-tight" id="hub-name-display">Loading...</h2>
+                        <div class="flex items-center justify-center md:justify-start gap-2 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+                            <i data-lucide="tag" class="w-3.5 h-3.5 text-[#14b8a6]"></i> Reward System
+                        </div>
+                    </div>
+
+                    <div class="flex-1 w-full max-w-md">
+                        <div class="flex justify-between items-end mb-3">
+                            <p class="text-[11px] font-bold text-[#14b8a6] uppercase tracking-[0.2em]" id="progress-text">Progress: 0/0</p>
+                            <p class="text-[11px] text-gray-400 font-bold tabular-nums" id="percent-text">0%</p>
+                        </div>
+                        <div class="w-full bg-[#050505] border border-white/5 rounded-full h-3 p-0.5 shadow-inner">
+                            <div class="bg-gradient-to-r from-[#14b8a6] to-emerald-400 h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden shadow-[0_0_15px_rgba(20,184,166,0.4)] shimmer" id="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <button onclick="window.goToNextStep()" id="next-btn" class="w-full md:w-auto bg-[#14b8a6] hover:bg-[#0d9488] text-black font-black py-4 px-10 rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-105 shadow-[0_10px_25px_rgba(20,184,166,0.3)] disabled:opacity-50 disabled:pointer-events-none disabled:transform-none">
+                        <span id="next-btn-text">NEXT</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl transition-all hover:border-white/10 float-layer delay-1">
+                <div class="px-8 py-5 border-b border-white/5 flex justify-between items-center bg-[#050505]/60">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#14b8a6]/10 flex items-center justify-center border border-[#14b8a6]/20">
+                            <i data-lucide="key" class="w-4 h-4 text-[#14b8a6]"></i>
+                        </div>
+                        <span id="keys-count">Your Keys (0/0)</span>
+                    </h3>
+                    <div class="flex items-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span> ACTIVE
+                    </div>
+                </div>
+
+                <div class="p-8">
+                    <div id="keys-container" class="space-y-4 min-h-[80px]"></div>
+
+                    <div class="mt-12 flex flex-col items-center border-t border-white/5 pt-10">
+                        <button onclick="window.attemptGenerate()" id="get-new-key-btn" class="group bg-[#0a0a0b] border border-white/10 text-gray-400 hover:text-white hover:border-[#14b8a6]/50 font-bold py-4 px-12 rounded-xl flex items-center gap-3 transition-all hover:bg-[#14b8a6]/5 hover:shadow-[0_0_25px_rgba(20,184,166,0.15)] disabled:opacity-50 disabled:pointer-events-none">
+                            <i data-lucide="lock" class="w-5 h-5 group-hover:text-[#14b8a6] transition-colors"></i> 
+                            <span id="generate-btn-text">Complete steps to unlock</span>
+                        </button>
+                        
+                        <div id="reset-container" class="mt-8 hidden">
+                            <button onclick="window.resetBrowser()" class="text-[10px] font-bold text-gray-500 hover:text-red-400 transition flex items-center gap-2 uppercase tracking-widest bg-[#050505] px-4 py-2 rounded-lg border border-transparent hover:border-red-500/20">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Forget Browser Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="globalErrorModal" class="hidden fixed inset-0 bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center z-[200] p-4">
+        <div class="glass-panel p-12 rounded-3xl w-full max-w-md relative z-10 flex flex-col items-center text-center modal-enter overflow-hidden border border-red-500/30">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-red-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+            <div class="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(239,68,68,0.2)]">
+                <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+            </div>
+            <h2 id="errorModalTitle" class="text-3xl font-black mb-3 text-white tracking-tight">Security Alert</h2>
+            <p id="errorModalMsg" class="text-gray-400 mb-8 leading-relaxed text-sm font-medium"></p>
+            <button onclick="document.getElementById('globalErrorModal').classList.add('hidden')" class="w-full bg-[#0a0a0b] border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all shadow-inner">
+                Acknowledge
+            </button>
+        </div>
+    </div>
+
+    <div id="stepCompleteModal" class="hidden fixed inset-0 bg-[#050505]/90 backdrop-blur-md flex items-center justify-center z-[150] p-4">
+        <div class="glass-panel p-12 rounded-3xl w-full max-w-md relative z-10 flex flex-col items-center text-center modal-enter overflow-hidden border border-[#14b8a6]/30">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#14b8a6]/10 to-transparent pointer-events-none"></div>
+            <div class="w-24 h-24 rounded-full bg-[#14b8a6]/10 border border-[#14b8a6]/20 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(20,184,166,0.3)] relative z-10">
+                <i data-lucide="check" class="w-12 h-12 text-[#14b8a6]"></i>
+            </div>
+            <h2 id="stepCompleteTitle" class="text-3xl font-black mb-3 text-white tracking-tight relative z-10"></h2>
+            <p id="stepCompleteDesc" class="text-gray-400 text-sm relative z-10 font-medium"></p>
+        </div>
+    </div>
+
+    <div id="customConfirmModal" class="hidden fixed inset-0 bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center z-[150] p-4">
+        <div class="glass-panel p-10 rounded-3xl w-full max-w-sm relative z-10 flex flex-col items-center text-center modal-enter">
+            <div class="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.2)] rotate-3">
+                <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
+            </div>
+            <h2 id="confirmTitle" class="text-2xl font-black mb-3 text-white text-center tracking-tight"></h2>
+            <p id="confirmMessage" class="text-sm text-gray-400 mb-8 text-center leading-relaxed font-medium"></p>
+            <div class="flex gap-4 w-full">
+                <button id="confirmCancelBtn" class="flex-1 bg-[#0a0a0b] border border-white/10 hover:bg-white/5 text-white font-bold py-3.5 rounded-xl transition-all shadow-inner">Cancel</button>
+                <button id="confirmActionBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)]">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        lucide.createIcons();
+        const hubId = window.location.pathname.split('/').pop();
+        let sessionId = localStorage.getItem(`kymor_session_${hubId}`);
+        let currentProgress = 0, totalSteps = 1, maxKeys = 2, localKeys = [];
+        let timerInterval = null, cooldownInterval = null, cooldownUntil = null;
+        let hubConfigData = { add_time_label: '+ 6H' };
+
+        function newSearchParams() {
+            return new URLSearchParams(window.location.search);
+        }
+
+        const urlParamsData = newSearchParams();
+        const errorMsg = urlParamsData.get('error');
+        const errorTitle = urlParamsData.get('title') || 'Security Alert';
+        
+        if (errorMsg) {
+            window.onload = () => {
+                window.showErrorLayer(decodeURIComponent(errorTitle), decodeURIComponent(errorMsg));
+                const cleanParams = newSearchParams();
+                cleanParams.delete('error');
+                cleanParams.delete('title');
+                const newUrl = window.location.pathname + (cleanParams.toString() ? '?' + cleanParams.toString() : '');
+                window.history.replaceState({}, document.title, newUrl);
+            };
+        }
+
+        window.showErrorLayer = function(title, message) {
+            const modal = document.getElementById('globalErrorModal');
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalMsg').innerText = message;
+            modal.classList.remove('hidden');
+        };
+
+        window.showToast = function (message, type = "success") {
+            const container = document.getElementById("toast-container");
+            if (!container) return;
+
+            if (type === "success" || type === "error") {
+                container.innerHTML = "";
+            }
+
+            container.className =
+                "fixed top-4 sm:top-auto sm:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:-translate-x-0 sm:right-6 z-[9999] flex flex-col sm:flex-col items-center sm:items-end gap-2 pointer-events-none w-[90%] sm:w-auto";
+
+            const toast = document.createElement("div");
+            const isError = type === "error";
+            const isInfo = type === "info";
+            const icon = isError ? "alert-circle" : isInfo ? "loader-2" : "check-circle";
+            const colorClass = isError ? "text-red-500" : isInfo ? "text-[#5865F2]" : "text-[#14b8a6]";
+
+            toast.className = `flex items-center gap-3 bg-[#1e1f22] border border-[#2b2d31] p-3 sm:p-4 rounded-md shadow-2xl transform sm:translate-x-full -translate-y-full sm:translate-y-0 opacity-0 transition-all duration-300 pointer-events-auto w-full sm:w-[350px]`;
+            toast.innerHTML = `
+                <div class="${colorClass} shrink-0">
+                <i data-lucide="${icon}" class="w-5 h-5 ${isInfo ? "animate-spin" : ""}"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-200 flex-1 break-words">${message}</p>
+                <button onclick="this.parentElement.classList.add('opacity-0', 'scale-95'); setTimeout(()=>this.parentElement.remove(),300)" class="text-gray-400 hover:text-white transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+            `;
+
+            container.appendChild(toast);
+            if (window.lucide) lucide.createIcons({ root: toast });
+
+            requestAnimationFrame(() => {
+                toast.classList.remove("sm:translate-x-full", "-translate-y-full", "opacity-0");
+            });
+
+            if (!isInfo) {
+                setTimeout(() => {
+                toast.classList.add("opacity-0", "scale-95");
+                setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
+            return toast;
+        };
+
+        window.showConfirm = function(title, message, confirmText = 'Confirm') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customConfirmModal');
+                const confirmBtn = document.getElementById('confirmActionBtn'), cancelBtn = document.getElementById('confirmCancelBtn');
+                document.getElementById('confirmTitle').innerText = title; 
+                document.getElementById('confirmMessage').innerText = message;
+                confirmBtn.innerText = confirmText; 
+                
+                modal.classList.remove('hidden'); 
+                
+                const cleanup = () => { 
+                    modal.classList.add('hidden'); 
+                };
+                
+                confirmBtn.onclick = () => { cleanup(); resolve(true); };
+                cancelBtn.onclick = () => { cleanup(); resolve(false); };
+            });
+        };
+
+        window.showStepCompleteModal = function(title, desc) {
+            const modal = document.getElementById('stepCompleteModal');
+            document.getElementById('stepCompleteTitle').innerText = title;
+            document.getElementById('stepCompleteDesc').innerText = desc;
+            
+            modal.classList.remove('hidden');
+            
+            const close = () => {
+                modal.classList.add('hidden');
+            };
+            modal.onclick = close;
+            setTimeout(close, 4000);
+        };
+
+        window.initPage = async function() {
+            try {
+                const initParams = newSearchParams();
+                const urlSession = initParams.get('session');
+                const urlDt = initParams.get('dt');
+                
+                if (urlDt) localStorage.setItem('kymor_global_discord', urlDt);
+                if (urlSession || urlDt) { 
+                    if(urlSession) sessionId = urlSession; 
+                    localStorage.setItem(`kymor_session_${hubId}`, sessionId); 
+                    window.history.replaceState({}, document.title, window.location.pathname); 
+                }
+                
+                let rawKeys = JSON.parse(localStorage.getItem(`kymor_keys_${hubId}`) || "[]");
+                localKeys = rawKeys.map(k => typeof k === 'object' ? k.key : k);
+                
+                const invRes = await fetch(`/api/rewards/${hubId}/inventory`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ local_keys: localKeys }) });
+                const invData = await invRes.json();
+                
+                if (invData.error) { 
+                    document.getElementById('hub-name-display').innerText = "Gateway Offline"; 
+                    window.showErrorLayer("Access Denied", invData.error);
+                    return; 
+                }
+                
+                document.getElementById('main-reward-content').classList.remove('hidden');
+                document.getElementById('hub-name-display').innerText = invData.hub_name;
+                totalSteps = invData.checkpoints_total; maxKeys = invData.max_keys;
+                localKeys = invData.keys.map(k => k.key); 
+                localStorage.setItem(`kymor_keys_${hubId}`, JSON.stringify(localKeys));
+
+                const savedDiscordToken = localStorage.getItem('kymor_global_discord');
+                const sesRes = await fetch(`/api/rewards/${hubId}/session`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ session_id: sessionId, discord_token: savedDiscordToken }) });
+                const sesData = await sesRes.json();
+                
+                sessionId = sesData.session_id; localStorage.setItem(`kymor_session_${hubId}`, sessionId);
+                
+                if (sesData.hub_config) {
+                    let secs = sesData.hub_config.add_time_seconds;
+                    if (secs >= 31536000 && secs % 31536000 === 0) hubConfigData.add_time_label = `${secs/31536000}Y`;
+                    else if (secs >= 2592000 && secs % 2592000 === 0) hubConfigData.add_time_label = `${secs/2592000}Mo`;
+                    else if (secs >= 86400 && secs % 86400 === 0) hubConfigData.add_time_label = `${secs/86400}D`;
+                    else if (secs >= 3600 && secs % 3600 === 0) hubConfigData.add_time_label = `${secs/3600}H`;
+                    else if (secs >= 60 && secs % 60 === 0) hubConfigData.add_time_label = `${secs/60}M`;
+                    else hubConfigData.add_time_label = `${secs}S`;
+                }
+
+                let prevProgress = parseInt(localStorage.getItem(`kymor_progress_${hubId}`) || "0");
+                if (sesData.progress > prevProgress && sesData.progress > 0 && sesData.progress <= totalSteps) {
+                    if (sesData.progress === totalSteps) {
+                        window.showStepCompleteModal(`All Checkpoints Completed!`, "You can now claim your reward key below.");
+                    } else {
+                        window.showStepCompleteModal(`${sesData.progress}/${totalSteps} Checkpoints`, "You have successfully advanced. Keep going!");
+                    }
+                }
+                localStorage.setItem(`kymor_progress_${hubId}`, sesData.progress);
+                
+                currentProgress = sesData.progress;
+                cooldownUntil = sesData.cooldown_until ? new Date(sesData.cooldown_until).getTime() : null; 
+                
+                if (sesData.require_discord && !sesData.discord_linked) {
+                    document.getElementById('main-reward-content').classList.add('hidden');
+                    document.getElementById('discord-auth-container').classList.remove('hidden');
+                    lucide.createIcons(); return;
+                }
+                if (sesData.allow_browser_reset !== false) document.getElementById('reset-container').classList.remove('hidden');
+
+                window.updateProgressBar(); window.renderInventory(invData.keys);
+            } catch (err) {}
+        }
+
+        window.updateProgressBar = function() {
+            const perc = totalSteps > 0 ? Math.floor((currentProgress / totalSteps) * 100) : 100;
+            document.getElementById('progress-text').innerText = `Progress: ${currentProgress}/${totalSteps}`;
+            document.getElementById('percent-text').innerText = `${perc}%`;
+            document.getElementById('progress-bar').style.width = `${perc}%`;
+            
+            const n = document.getElementById('next-btn');
+            const nText = document.getElementById('next-btn-text') || n.querySelector('span') || n;
+            const nIcon = n.querySelector('i');
+            
+            const isCooldownActive = cooldownUntil && cooldownUntil > new Date().getTime();
+            
+            if (isCooldownActive) {
+                 n.disabled = true;
+                 nText.innerText = "COOLDOWN";
+                 if(nIcon) nIcon.setAttribute('data-lucide', 'clock');
+                 n.className = "w-full md:w-auto bg-[#050505] border border-red-500/30 text-red-500 font-black py-4 px-10 rounded-xl flex items-center justify-center gap-3 opacity-80 shadow-inner";
+            } else if (currentProgress >= totalSteps) { 
+                n.disabled = true; 
+                nText.innerText = "COMPLETED";
+                if(nIcon) nIcon.setAttribute('data-lucide', 'check-circle');
+                n.className = "w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-500 font-black py-4 px-10 rounded-xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(34,197,94,0.15)]"; 
+            } else { 
+                n.disabled = false; 
+                nText.innerText = "NEXT";
+                if(nIcon) nIcon.setAttribute('data-lucide', 'arrow-right');
+                n.className = "w-full md:w-auto bg-[#14b8a6] hover:bg-[#0d9488] text-black font-black py-4 px-10 rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-105 shadow-[0_10px_25px_rgba(20,184,166,0.3)]"; 
+            }
+            lucide.createIcons({ root: n });
+        }
+
+        window.startCooldownTimer = function() {
+            if(cooldownInterval) clearInterval(cooldownInterval);
+            
+            const updateBtn = () => {
+                if (!cooldownUntil) return;
+                const now = new Date().getTime();
+                const diff = cooldownUntil - now;
+                const btn = document.getElementById('get-new-key-btn');
+                const txt = document.getElementById('generate-btn-text');
+                const icon = btn.querySelector('i');
+
+                if (diff <= 0) {
+                    cooldownUntil = null;
+                    clearInterval(cooldownInterval);
+                    window.updateProgressBar(); 
+                    window.initPage(); 
+                } else {
+                    const totalSeconds = Math.floor(diff / 1000);
+                    const h = Math.floor(totalSeconds / 3600);
+                    const m = Math.floor((totalSeconds % 3600) / 60);
+                    const s = totalSeconds % 60;
+                    
+                    btn.disabled = true;
+                    if(txt) txt.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} Cooldown`;
+                    if(icon) icon.setAttribute('data-lucide', 'hourglass');
+                    btn.className = "group bg-red-500/10 border border-red-500/30 text-red-500 font-bold py-4 px-12 rounded-xl flex items-center gap-3 opacity-80 cursor-not-allowed shadow-inner";
+                    lucide.createIcons({ root: btn });
+                }
+            };
+            
+            updateBtn();
+            cooldownInterval = setInterval(updateBtn, 1000);
+        }
+
+        window.renderInventory = function(keys) {
+            document.getElementById('keys-count').innerText = `Generated Keys (${keys.length}/${maxKeys})`;
+            const btn = document.getElementById('get-new-key-btn');
+            const txt = document.getElementById('generate-btn-text');
+            const icon = btn.querySelector('i');
+            const isCooldownActive = cooldownUntil && cooldownUntil > new Date().getTime();
+
+            if (isCooldownActive) {
+                window.startCooldownTimer();
+            } else if (keys.length >= maxKeys) { 
+                btn.disabled = true; 
+                if(txt) txt.innerText = "Limit Reached"; 
+                if(icon) icon.setAttribute('data-lucide', 'slash');
+                btn.className = "group bg-[#050505] border border-white/5 text-gray-500 font-bold py-4 px-12 rounded-xl flex items-center gap-3 cursor-not-allowed shadow-inner"; 
+            } else if (currentProgress < totalSteps) { 
+                btn.disabled = true; 
+                if(txt) txt.innerText = "Complete steps to unlock"; 
+                if(icon) icon.setAttribute('data-lucide', 'lock');
+                btn.className = "group bg-[#050505] border border-white/10 text-gray-400 font-bold py-4 px-12 rounded-xl flex items-center gap-3 cursor-not-allowed shadow-inner"; 
+            } else { 
+                btn.disabled = false; 
+                if(txt) txt.innerText = "Claim Reward Key";
+                if(icon) icon.setAttribute('data-lucide', 'zap');
+                btn.className = "group bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-xl flex items-center gap-3 transition-all hover:scale-105 shadow-[0_10px_25px_rgba(37,99,235,0.4)] border border-blue-500"; 
+            }
+            lucide.createIcons({ root: btn });
+            
+            const container = document.getElementById('keys-container');
+            if (keys.length === 0) { 
+                container.innerHTML = `<div class="bg-[#050505] border border-white/5 p-8 rounded-2xl text-center text-gray-500 text-sm font-medium italic shadow-inner flex flex-col items-center gap-3"><i data-lucide="key" class="w-6 h-6 opacity-30"></i> Your generated keys will appear here.</div>`; 
+                if(timerInterval) clearInterval(timerInterval);
+                lucide.createIcons();
+                return; 
+            }
+            
+            const now = new Date().getTime();
+
+            container.innerHTML = keys.map(k => {
+                const expTime = k.expires_at ? new Date(k.expires_at).getTime() : null;
+                const isExpired = expTime && now > expTime;
+                const isBanned = k.status === 'BANNED';
+                
+                let statusHtml = '';
+                let actionHtml = '';
+                let textColorClass = 'text-[#14b8a6]';
+                
+                if (isBanned) {
+                    statusHtml = `<span class="bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-inner">Banned</span>`;
+                    actionHtml = `<button disabled class="bg-[#050505] border border-white/5 text-gray-600 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed whitespace-nowrap"><i data-lucide="slash" class="w-3.5 h-3.5"></i> Void</button>`;
+                    textColorClass = 'text-red-500/70 line-through';
+                } else if (isExpired) {
+                    statusHtml = `<span class="bg-orange-500/10 text-orange-500 border border-orange-500/20 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-inner">Expired</span>`;
+                    actionHtml = `<button onclick="window.attemptRenew('${k.key}')" class="bg-orange-500 hover:bg-orange-400 text-black font-bold text-xs py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_5px_15px_rgba(249,115,22,0.3)] whitespace-nowrap"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Renew</button>`;
+                    textColorClass = 'text-gray-500 line-through';
+                } else if (expTime) { 
+                    statusHtml = `<span class="bg-[#14b8a6]/10 text-[#14b8a6] border border-[#14b8a6]/20 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-[0_0_10px_rgba(20,184,166,0.15)]">Active</span>`;
+                    actionHtml = `
+                    <div class="flex flex-row gap-2 w-full justify-center md:justify-end">
+                        <button onclick="window.copyKeyText('${k.key}')" class="bg-[#050505] hover:bg-white/5 border border-white/10 text-white font-bold text-[10px] md:text-xs py-2 px-3 md:px-4 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-inner whitespace-nowrap"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy</button>
+                        <button onclick="window.attemptAddTime('${k.key}')" class="bg-[#14b8a6] hover:bg-[#0d9488] text-black font-bold text-[10px] md:text-xs py-2 px-3 md:px-4 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_5px_15px_rgba(20,184,166,0.3)] whitespace-nowrap"><i data-lucide="plus" class="w-3.5 h-3.5"></i> ${hubConfigData.add_time_label}</button>
+                    </div>`;
+                } else { 
+                    statusHtml = `<span class="bg-[#14b8a6]/10 text-[#14b8a6] border border-[#14b8a6]/20 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-[0_0_10px_rgba(20,184,166,0.15)]">Active</span>`;
+                    actionHtml = `<button onclick="window.copyKeyText('${k.key}')" class="bg-[#050505] hover:bg-white/5 border border-white/10 text-white font-bold text-[10px] md:text-xs py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-inner whitespace-nowrap"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Key</button>`;
+                }
+
+                return `
+                <div class="key-item-enter bg-[#0a0a0b] border border-white/5 p-4 md:p-5 rounded-2xl flex flex-col md:flex-row items-center gap-5 hover:border-white/10 transition-colors shadow-lg">
+                    <div class="w-full md:w-auto flex-1 flex flex-col md:flex-row items-center gap-4 overflow-hidden">
+                        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center shrink-0 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.15)] hidden md:flex">
+                            <i data-lucide="key" class="w-5 h-5 text-yellow-500"></i>
+                        </div>
+                        <span class="font-mono ${textColorClass} font-bold text-sm tracking-wide truncate select-all text-center md:text-left w-full">${k.key}</span>
+                    </div>
+                    
+                    <div class="w-full md:w-auto flex flex-col md:flex-row items-center justify-between md:justify-end gap-4 md:gap-6 flex-1">
+                        <div class="flex md:contents w-full justify-between items-center md:w-auto px-2 md:px-0">
+                            <div class="text-left md:text-center flex flex-col items-start md:items-center justify-center min-w-[100px]">
+                                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 block">Expiry</span>
+                                <span class="text-[#14b8a6] font-mono text-sm font-bold key-timer" data-expires="${expTime || ''}" data-expired="${isExpired}" data-banned="${isBanned}">
+                                    ${isBanned ? '--:--:--' : (expTime ? '00:00:00' : 'LIFETIME')}
+                                </span>
+                            </div>
+                            <div class="shrink-0 flex items-center justify-end md:justify-center min-w-[80px]">
+                                ${statusHtml}
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto flex justify-center md:justify-end mt-2 md:mt-0">
+                            ${actionHtml}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
+
+            if(timerInterval) clearInterval(timerInterval);
+            
+            const updateTimers = () => {
+                const currentTime = new Date().getTime();
+                let needsRefresh = false;
+
+                document.querySelectorAll('.key-timer').forEach(el => {
+                    if (el.getAttribute('data-banned') === 'true') return;
+                    
+                    const expAttr = el.getAttribute('data-expires');
+                    if (!expAttr) return;
+                    
+                    const expTime = parseInt(expAttr);
+                    const isCurrentlyExpired = el.getAttribute('data-expired') === 'true';
+                    const diff = expTime - currentTime;
+
+                    if (diff <= 0) {
+                        if (!isCurrentlyExpired) {
+                            needsRefresh = true;
+                        }
+                        el.innerText = '00:00:00';
+                    } else {
+                        const totalSeconds = Math.floor(diff / 1000);
+                        const h = Math.floor(totalSeconds / 3600);
+                        const m = Math.floor((totalSeconds % 3600) / 60);
+                        const s = totalSeconds % 60;
+                        
+                        el.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    }
+                });
+
+                if (needsRefresh) {
+                    window.renderInventory(keys); 
+                }
+            };
+
+            updateTimers();
+            timerInterval = setInterval(updateTimers, 1000);
+        }
+
+        window.goToNextStep = async function() {
+            const nextBtn = document.getElementById('next-btn');
+            const nText = document.getElementById('next-btn-text') || nextBtn.querySelector('span') || nextBtn;
+            const icon = nextBtn.querySelector('i');
+            const originalText = nText.innerText;
+            
+            nText.innerText = "LOADING...";
+            if(icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); }
+            lucide.createIcons({ root: nextBtn });
+            
+            try {
+                const res = await fetch(`/api/rewards/${hubId}/step/${sessionId}`);
+                const data = await res.json();
+                
+                if (data.error) {
+                    if (res.status === 403 && data.error.includes("Cooldown")) {
+                        window.showErrorLayer("Action Denied", "Your cooldown is currently active.");
+                    } else {
+                        window.showErrorLayer(data.title || "Verification Failed", data.error);
+                    }
+                    nText.innerText = originalText; 
+                    if(icon) { icon.setAttribute('data-lucide', 'arrow-right'); icon.classList.remove('animate-spin'); }
+                    lucide.createIcons({ root: nextBtn });
+                }
+                else if (data.url) window.location.href = data.url; 
+                else { 
+                    window.showToast("Step Error", "error"); 
+                    nText.innerText = originalText; 
+                    if(icon) { icon.setAttribute('data-lucide', 'arrow-right'); icon.classList.remove('animate-spin'); }
+                    lucide.createIcons({ root: nextBtn }); 
+                }
+            } catch (err) { 
+                window.showToast("Network Error", "error"); 
+                nText.innerText = originalText; 
+                if(icon) { icon.setAttribute('data-lucide', 'arrow-right'); icon.classList.remove('animate-spin'); }
+                lucide.createIcons({ root: nextBtn }); 
+            }
+        }
+
+        window.claimKey = async function() {
+            const btn = document.getElementById('get-new-key-btn');
+            const txt = document.getElementById('generate-btn-text');
+            const icon = btn.querySelector('i');
+            
+            if(icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); }
+            if(txt) txt.innerText = 'GENERATING...';
+            lucide.createIcons({ root: btn });
+
+            try {
+                const res = await fetch(`/api/rewards/${hubId}/claim`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ session_id: sessionId }) });
+                const data = await res.json();
+                
+                if (res.status === 403 && data.cooldown_until) {
+                    cooldownUntil = new Date(data.cooldown_until).getTime();
+                    window.updateProgressBar();
+                    window.startCooldownTimer();
+                    return window.showErrorLayer("Action Denied", "Your cooldown is currently active.");
+                }
+                
+                if (data.key) { 
+                    if (!localKeys.includes(data.key)) localKeys.push(data.key);
+                    localStorage.setItem(`kymor_keys_${hubId}`, JSON.stringify(localKeys)); 
+                    window.showToast("Key Successfully Generated!"); 
+                    setTimeout(() => location.reload(), 1000); 
+                } else { window.showToast(data.error || "Generation Failed", "error"); window.initPage(); }
+            } catch (err) { window.showToast("Server Error", "error"); window.initPage(); }
+        }
+
+        window.attemptRenew = async function(keyString) {
+            if (currentProgress < totalSteps) {
+                window.showToast("Please finish the checkpoints to renew this key!", "error");
+                return;
+            }
+            try {
+                const res = await fetch(`/api/rewards/${hubId}/renew`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ session_id: sessionId, key_string: keyString }) 
+                });
+                const data = await res.json();
+                
+                if (res.status === 403 && data.cooldown_until) {
+                    cooldownUntil = new Date(data.cooldown_until).getTime();
+                    window.updateProgressBar();
+                    window.startCooldownTimer();
+                    return window.showErrorLayer("Action Denied", "Your cooldown is currently active.");
+                }
+
+                if (data.success) {
+                    window.showToast("Key Renewed Successfully!");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    window.showToast(data.error || "Failed to renew key", "error");
+                }
+            } catch (err) {
+                window.showToast("Server Error", "error");
+            }
+        }
+
+        window.attemptAddTime = async function(keyString) {
+            if (currentProgress < totalSteps) {
+                window.showToast("Please finish the checkpoints to add time to this key!", "error");
+                return;
+            }
+            try {
+                const res = await fetch(`/api/rewards/${hubId}/add-time`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ session_id: sessionId, key_string: keyString }) 
+                });
+                const data = await res.json();
+                
+                if (res.status === 403) {
+                    if (data.cooldown_until) {
+                        cooldownUntil = new Date(data.cooldown_until).getTime();
+                        window.updateProgressBar();
+                        window.startCooldownTimer();
+                        return window.showErrorLayer("Action Denied", "Your cooldown is currently active.");
+                    }
+                    return window.showErrorLayer("Limit Reached", data.error);
+                }
+
+                if (data.success) {
+                    window.showToast(`Successfully added time!`);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    window.showToast(data.error || "Failed to add time", "error");
+                }
+            } catch (err) {
+                window.showToast("Server Error", "error");
+            }
+        }
+
+        window.resetBrowser = async function() {
+            const confirmed = await window.showConfirm(
+                "Reset Checkpoint Progress?", 
+                "This will wipe your checkpoint progress so you can start over. Your previously generated keys will NOT be deleted.",
+                "Yes, Reset Progress"
+            );
+
+            if(confirmed) {
+                localStorage.removeItem(`kymor_session_${hubId}`);
+                localStorage.removeItem(`kymor_progress_${hubId}`);
+                
+                window.showToast("System reset triggered...", "info");
+
+                try {
+                    await fetch(`/api/rewards/${hubId}/reset-session`, { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({ session_id: sessionId }) 
+                    });
+                } catch(e) {}
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+
+        window.attemptGenerate = () => {
+             const isCooldownActive = cooldownUntil && cooldownUntil > new Date().getTime();
+             if (isCooldownActive) return window.showErrorLayer("Action Denied", "Your cooldown is currently active.");
+             currentProgress >= totalSteps ? window.claimKey() : window.showToast("Finish the steps first!", "error");
+        };
+        
+        window.copyKeyText = (t) => { navigator.clipboard.writeText(t); window.showToast("Copied to clipboard!"); };
+        window.loginDiscord = () => window.location.href = `/api/rewards/${hubId}/discord/login?sessionId=${sessionId}`;
+        window.initPage();
+    </script>
+</body>
+</html>

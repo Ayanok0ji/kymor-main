@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Documentation | Kymor</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="overflow-x: hidden; width: 100vw; min-height: 100vh; display: flex; flex-direction: column;">
+
+    <div class="bg-grid"></div>
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="glass-overlay"></div>
+
+    <nav class="lp-navbar lp-glass-panel docs-navbar reveal active">
+        <a href="/" class="lp-nav-brand">
+            <div class="lp-nav-brand-icon">
+                <i data-lucide="shield" style="width: 14px; height: 14px; color: #14b8a6;"></i>
+            </div>
+            Kymor
+        </a>
+        <div class="lp-nav-links docs-only-nav">
+            <a href="/docs" class="lp-nav-link active-link">Documentation</a>
+        </div>
+        <div class="lp-nav-actions">
+            <a href="/dashboard" class="lp-btn-nav-cta">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="lp-container docs-layout" style="margin-top: 140px;">
+        
+        <aside class="docs-sidebar scrollbar-hide">
+            <div class="docs-nav-group">
+                <h4 class="docs-nav-title">
+                    <i data-lucide="compass" style="width: 16px; height: 16px; color: #14b8a6;"></i> Getting Started
+                </h4>
+                <div class="docs-nav-list">
+                    <a href="#intro" class="docs-nav-link">Introduction</a>
+                    <a href="#account-tiers" class="docs-nav-link">Account Tiers</a>
+                    <a href="#dashboard" class="docs-nav-link">Dashboard</a>
+                </div>
+            </div>
+            
+            <div class="docs-nav-group">
+                <h4 class="docs-nav-title">
+                    <i data-lucide="folder" style="width: 16px; height: 16px; color: #14b8a6;"></i> Hub & Scripts
+                </h4>
+                <div class="docs-nav-list">
+                    <a href="#hubs-scripts" class="docs-nav-link">Creating Hubs</a>
+                    <a href="#obfuscation" class="docs-nav-link">Obfuscation</a>
+                    <a href="#landing-pages" class="docs-nav-link">Landing Pages</a>
+                </div>
+            </div>
+
+            <div class="docs-nav-group">
+                <h4 class="docs-nav-title">
+                    <i data-lucide="key" style="width: 16px; height: 16px; color: #14b8a6;"></i> Monetization
+                </h4>
+                <div class="docs-nav-list">
+                    <a href="#keys" class="docs-nav-link">Key System</a>
+                    <a href="#rewards" class="docs-nav-link">Checkpoints</a>
+                </div>
+            </div>
+
+            <div class="docs-nav-group">
+                <h4 class="docs-nav-title">
+                    <i data-lucide="terminal" style="width: 16px; height: 16px; color: #14b8a6;"></i> Developer SDK
+                </h4>
+                <div class="docs-nav-list">
+                    <a href="#sdk-setup" class="docs-nav-link">Integration</a>
+                    <a href="#status-codes" class="docs-nav-link">Status Codes</a>
+                    <a href="#security" class="docs-nav-link">Security</a>
+                </div>
+            </div>
+
+            <div class="docs-nav-group">
+                <h4 class="docs-nav-title">
+                    <i data-lucide="blocks" style="width: 16px; height: 16px; color: #14b8a6;"></i> Integrations
+                </h4>
+                <div class="docs-nav-list">
+                    <a href="#discord" class="docs-nav-link">Discord Bot</a>
+                    <a href="#analytics" class="docs-nav-link">Live Analytics</a>
+                </div>
+            </div>
+        </aside>
+
+        <div class="docs-content">
+            
+            <section id="intro" class="docs-section reveal active">
+                <h2 class="text-3xl lg:text-4xl font-black text-white mb-6 tracking-tight">Introduction to Kymor</h2>
+                <p class="text-[#9ca3af] text-base lg:text-lg leading-relaxed mb-4">Kymor is the industry standard API and platform for distributing, securing, and monetizing Lua scripts. We handle the heavy lifting of backend architecture, database management, and exploit prevention so you can focus exclusively on writing great code.</p>
+                <p class="text-[#9ca3af] text-base lg:text-lg leading-relaxed">Whether you are offering a free script through automated ad-link checkpoints or selling premium lifetime access keys via our direct payment gateways, Kymor provides a military-grade HWID locking system to ensure your work cannot be shared or stolen.</p>
+            </section>
+
+            <section id="account-tiers" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Account Tiers</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Kymor is accessible to everyone, but serious developers can upgrade to Premium to unlock enterprise features and expanded limits.</p>
+                
+                <div class="docs-card-grid">
+                    <div class="docs-card">
+                        <h4 class="font-bold text-white text-base mb-3 flex items-center gap-2">Free Tier</h4>
+                        <ul class="text-sm text-[#9ca3af] leading-relaxed space-y-2 list-disc pl-4 marker:text-[#14b8a6]">
+                            <li>1 Active Hub & 2 Scripts per Hub</li>
+                            <li>Standard HWID Locking & Granular Keys</li>
+                            <li>3 LuaCon Engine Obfuscations / Day</li>
+                            <li>Keys prefixed with <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-xs">KYMOR-</code></li>
+                        </ul>
+                    </div>
+                    <div class="docs-card relative overflow-hidden border-[#14b8a6]/20">
+                        <div class="absolute top-0 right-0 bg-[#14b8a6] text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">Recommended</div>
+                        <h4 class="font-bold text-[#14b8a6] text-base mb-3 flex items-center gap-2">Premium Tier</h4>
+                        <ul class="text-sm text-[#9ca3af] leading-relaxed space-y-2 list-disc pl-4 marker:text-[#14b8a6]">
+                            <li>Up to 50 Hubs & 150 Scripts per Hub</li>
+                            <li>Custom Key Branding (No Prefix)</li>
+                            <li>Live Payments (PayPal, GCash, Maya)</li>
+                            <li>Global Discord Bot Access</li>
+                            <li>Unlimited LuaCon Obfuscations</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dashboard" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Dashboard Basics</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed">Your dashboard is your central command center. From here, you can view real-time statistics on active users, total executions, and recent key redemptions. The dashboard updates live without requiring a page refresh. Navigate using the left sidebar to access Hubs, Keys, Analytics, and Global Settings.</p>
+            </section>
+
+            <section id="hubs-scripts" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Hubs & Scripts</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Everything in Kymor is organized into <strong class="text-white">Hubs</strong>. Think of a Hub as a project folder. A Hub contains its own scripts, user keys, discord webhooks, and its own unique landing page.</p>
+                
+                <h3 class="text-xl font-bold text-white mb-3">Adding Scripts</h3>
+                <p class="text-[#9ca3af] text-base leading-relaxed">Inside a Hub, you can create multiple scripts. Paste your raw Lua source code into the editor. Kymor stores this code encrypted at rest. When an authenticated user executes your loader, Kymor streams the code directly into the user's executor in memory. The user never downloads a file, and your source code is never exposed as plain text in network logs.</p>
+            </section>
+
+            <section id="obfuscation" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Dynamic Obfuscation</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">To protect against memory dumping and exploit reverse-engineering, Kymor offers our proprietary <strong class="text-[#14b8a6]">LuaCon Engine</strong> natively integrated into your dashboard.</p>
+                <p class="text-[#9ca3af] text-base leading-relaxed">When enabled in your script settings, Kymor will dynamically obfuscate your script every time you save it. Free accounts are granted 3 obfuscations per day, while Premium users enjoy unlimited dynamic protection.</p>
+            </section>
+
+            <section id="landing-pages" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Landing Pages & Payments</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Stop building custom websites for your scripts. Kymor automatically generates a sleek, high-converting landing page for every Hub you create.</p>
+                <ul class="text-[#9ca3af] text-base leading-relaxed space-y-2 list-disc pl-6 marker:text-[#14b8a6]">
+                    <li>Claim a custom URL: <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">kymor.dev/p/your-hub-name</code></li>
+                    <li>Accept live payments securely via <strong>PayMongo (GCash, Maya)</strong> and <strong>PayPal</strong>. Users instantly receive a receipt and their Premium Key directly to their email.</li>
+                    <li>The landing page automatically handles Ad-Link checkpoint redirects and cooldowns for your free users.</li>
+                </ul>
+            </section>
+
+            <section id="keys" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Key Management & HWID</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Keys control access to your scripts. You can generate keys individually or in bulk via the dashboard, or automate them using Checkpoints or the Discord Bot.</p>
+                
+                <div class="docs-card-grid">
+                    <div class="docs-card">
+                        <h4 class="font-bold text-white text-base mb-3 flex items-center gap-2"><i data-lucide="lock" style="width: 18px; height: 18px; color: #14b8a6;"></i> HWID Locking</h4>
+                        <p class="text-sm text-[#9ca3af] leading-relaxed">When a user executes your script for the first time, Kymor instantly binds the key to their Hardware ID. Subsequent executions from different PCs using the same key are automatically blocked. You can manually reset a user's HWID via the dashboard.</p>
+                    </div>
+                    <div class="docs-card">
+                        <h4 class="font-bold text-white text-base mb-3 flex items-center gap-2"><i data-lucide="clock" style="width: 18px; height: 18px; color: #14b8a6;"></i> Granular Time Limits</h4>
+                        <p class="text-sm text-[#9ca3af] leading-relaxed">Unlike standard platforms, Kymor allows precision time controls. Generate 24-hour ad-link passes, 30-day subscriptions, or Lifetime access using precise Hours, Days, and Weeks.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="rewards" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Ad-Link Rewards (Checkpoints)</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Monetize free users by forcing them to pass through URL shorteners to obtain a timed key. We natively support Linkvertise, Lootlabs, Work.Ink, and ShrtFly.</p>
+                
+                <div class="docs-card-grid">
+                    <div class="docs-card">
+                        <h4 class="font-bold text-white text-base mb-3">Standard Ad-Links</h4>
+                        <p class="text-sm text-[#9ca3af] leading-relaxed">For Linkvertise, Work.Ink, or ShrtFly: Copy the <strong class="text-white">Target URL</strong> from Kymor's Checkpoint settings. Create a new link on your provider using that Target URL. Finally, paste the newly generated short link back into Kymor.</p>
+                    </div>
+                    <div class="docs-card">
+                        <h4 class="font-bold text-white text-base mb-3">Lootlabs Postbacks</h4>
+                        <p class="text-sm text-[#9ca3af] leading-relaxed">Lootlabs uses secure API Postbacks to completely prevent bypassing. Copy Kymor's <strong class="text-white">Postback URL</strong> and paste it into the Lootlabs campaign settings under the S2S Postback tab to secure your link.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sdk-setup" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Integration Guide</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">To load your script securely, you will distribute a lightweight Loader. Copy this template or fetch your specific Hub's template directly from the dashboard.</p>
+                
+                <div class="lp-code-preview">
+                    <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="terminal" style="width: 16px; height: 16px; color: #9ca3af;"></i> 
+                        <span style="color: #fff; font-weight: bold; font-family: 'Inter', sans-serif; font-size: 13px;">Integration Loader</span>
+                    </div>
+<pre><code><span class="comment">-- 1. Define user's key</span>
+<span class="func">getgenv</span>().kymor_key = <span class="string">"KYMOR-XXXX-XXXX"</span>
+
+<span class="comment">-- 2. Load Secure SDK</span>
+<span class="keyword">local</span> SDK = <span class="func">loadstring</span>(<span class="func">game</span>:HttpGet(<span class="string">"https://kymor.dev/sdk/library.lua"</span>))()
+SDK.script_id = <span class="string">"YOUR_UNIQUE_ID"</span>
+
+<span class="comment">-- 3. Authenticate</span>
+<span class="keyword">local</span> auth = SDK.check_key(<span class="func">getgenv</span>().kymor_key)
+
+<span class="keyword">if</span> auth.code == <span class="string">"KEY_VALID"</span> <span class="keyword">then</span>
+    <span class="comment">-- Executes protected code from our servers</span>
+    SDK.load_script() 
+<span class="keyword">else</span>
+    <span class="func">game</span>.Players.LocalPlayer:Kick(auth.message)
+<span class="keyword">end</span></code></pre>
+                </div>
+            </section>
+
+            <section id="status-codes" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">API Status Codes</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">When <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">KymorSDK.check_key()</code> pings the database, it returns a JSON table containing a <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">code</code> and a <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">message</code>.</p>
+                
+                <div class="docs-table-wrapper">
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Status Code</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="text-green-400 font-mono font-bold text-sm">KEY_VALID</span></td>
+                                <td>Success. Hardware matched and time remains. It is safe to call <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-xs">load_script()</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="text-red-400 font-mono font-bold text-sm">INVALID_KEY</span></td>
+                                <td>The key does not exist in your Hub's database. The user entered a typo or a fake key.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="text-orange-400 font-mono font-bold text-sm">HWID_MISMATCH</span></td>
+                                <td>The key is locked to a different computer's hardware.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="text-yellow-400 font-mono font-bold text-sm">EXPIRED_KEY</span></td>
+                                <td>The key's duration has run out. The user must generate or purchase a new key.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="text-red-600 font-mono font-bold text-sm">BANNED_KEY</span></td>
+                                <td>You manually blacklisted this key via the dashboard.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="text-blue-400 font-mono font-bold text-sm">SERVER_ERROR</span></td>
+                                <td>The Kymor API is currently undergoing maintenance or experiencing heavy load.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="security" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Security Practices</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">While Kymor handles robust server-side security and risk-scoring, exploiters may still attempt to bypass the loader itself. To maximize security, we highly recommend that you take the generated Loader Script and run it through a standard Lua Obfuscator before distributing it to your users.</p>
+                <p class="text-[#9ca3af] text-base leading-relaxed">By obfuscating the loader, you hide the <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">script_id</code> and the API endpoints from casual sniffers, adding an impenetrable secondary layer of security.</p>
+            </section>
+
+            <section id="discord" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Discord Bot & Webhooks</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Integrate Kymor directly into your Discord server for automated logging and user management.</p>
+
+                <h3 class="text-xl font-bold text-white mb-3">Execution Webhooks</h3>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Go to the Settings tab in your Hub to add a Discord Webhook URL. Every time a user successfully authenticates a key via your Loader, Kymor will silently send an embed to your Discord channel containing their Key, IP, Executor Name, and HWID Hash.</p>
+
+                <h3 class="text-xl font-bold text-white mb-3">Global API Bot</h3>
+                <p class="text-[#9ca3af] text-base leading-relaxed">Premium users can invite the official Kymor Bot to their community server. Once configured with your <strong class="text-white">Global API Key</strong>, users can type <code class="bg-white/10 px-1.5 py-0.5 rounded text-white font-mono text-sm">/getkey</code> in your server. The bot will automatically generate a new key on your behalf and DM it to the user, providing a seamless experience.</p>
+            </section>
+
+            <section id="analytics" class="docs-section reveal">
+                <h2 class="text-2xl lg:text-3xl font-black text-white mb-6 tracking-tight border-b border-white/5 pb-4">Live Analytics</h2>
+                <p class="text-[#9ca3af] text-base leading-relaxed mb-6">Knowledge is power. Kymor automatically tracks every interaction with your script and presents it in beautiful, easy-to-read charts within your dashboard.</p>
+                <ul class="text-[#9ca3af] text-base leading-relaxed space-y-2 list-disc pl-6 marker:text-[#14b8a6]">
+                    <li><strong>Executor Distribution:</strong> See exactly which exploits your users prefer.</li>
+                    <li><strong>Geographic Data:</strong> View an interactive 3D globe heatmap of where your users are executing from.</li>
+                    <li><strong>Checkpoint Drop-off:</strong> Track exactly how many users start your Ad-Links vs how many finish them, allowing you to optimize your monetization strategy.</li>
+                </ul>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="lp-footer mt-auto border-t border-white/5">
+        <div class="lp-container lp-footer-content flex flex-col sm:flex-row justify-between items-center py-8">
+            <div class="flex items-center gap-2 mb-4 sm:mb-0">
+                <i data-lucide="shield" style="width: 16px; height: 16px; color: #14b8a6;"></i>
+                <span style="font-weight: 800; color: #fff;">KYMOR</span>
+            </div>
+            <div class="text-[#9ca3af] text-sm text-center">&copy; 2026 Kymor Platform. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+            reveals.forEach(reveal => {
+                if(!reveal.classList.contains('active')) observer.observe(reveal);
+            });
+
+            const sections = document.querySelectorAll('.docs-section');
+            const navLinks = document.querySelectorAll('.docs-nav-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (scrollY >= sectionTop - 160) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

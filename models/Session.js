@@ -1,0 +1,2 @@
+import mongoose from 'mongoose';
+export default mongoose.model('Session', new mongoose.Schema({ token: { type: String, required: true, unique: true }, script_id: { type: String, required: true }, expires_at: { type: Date, required: true }, used: { type: Boolean, default: false } }));
